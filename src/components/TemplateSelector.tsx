@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const TemplateSelector = () => {
+const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => void }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   const templates = [
@@ -161,6 +161,7 @@ const TemplateSelector = () => {
           variant="outline" 
           size="lg"
           className="px-8"
+          onClick={onBrowseTemplates}
         >
           <TrendingUp className="w-4 h-4 mr-2" />
           Browse Examples

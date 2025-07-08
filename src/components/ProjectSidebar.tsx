@@ -14,12 +14,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import NewProjectModal from "./NewProjectModal";
 
 const ProjectSidebar = () => {
   const [expandedSections, setExpandedSections] = useState({
     projects: true,
     templates: false
   });
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -144,7 +146,10 @@ const ProjectSidebar = () => {
 
       {/* Footer */}
       <div className="p-4 border-t border-border">
-        <Button className="w-full bg-gradient-primary hover:opacity-90 text-white">
+        <Button 
+          className="w-full bg-gradient-primary hover:opacity-90 text-white"
+          onClick={() => setShowNewProjectModal(true)}
+        >
           <PlusCircle className="w-4 h-4 mr-2" />
           New Project
         </Button>
@@ -154,6 +159,16 @@ const ProjectSidebar = () => {
           Settings
         </Button>
       </div>
+
+      {/* New Project Modal */}
+      <NewProjectModal
+        open={showNewProjectModal}
+        onOpenChange={setShowNewProjectModal}
+        onProjectCreate={(project) => {
+          console.log('Project created:', project);
+          setShowNewProjectModal(false);
+        }}
+      />
     </div>
   );
 };

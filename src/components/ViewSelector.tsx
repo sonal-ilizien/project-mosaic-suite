@@ -14,12 +14,21 @@ import { Badge } from "@/components/ui/badge";
 import Dashboard from "./Dashboard";
 import KanbanBoard from "./KanbanBoard";
 import TemplateSelector from "./TemplateSelector";
+import ListView from "./ListView";
+import CalendarView from "./CalendarView";
+import ProjectOverview from "./ProjectOverview";
+import NewProjectModal from "./NewProjectModal";
+import TemplateGallery from "./TemplateGallery";
 
-type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates';
+type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'project-overview';
 
 const ViewSelector = () => {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   const views = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3, description: 'Overview & Analytics' },
@@ -29,34 +38,42 @@ const ViewSelector = () => {
     { id: 'templates', name: 'Templates', icon: Filter, description: 'Project Templates' }
   ];
 
+  const handleProjectCreate = (project: any) => {
+    setSelectedProject(project);
+    setActiveView('project-overview');
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    setSelectedTemplate(template);
+    setShowNewProjectModal(true);
+  };
+
+  const handleBrowseTemplates = () => {
+    setShowTemplateGallery(true);
+  };
+
   const renderActiveView = () => {
     switch (activeView) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onProjectSelect={(project) => {
+          setSelectedProject(project);
+          setActiveView('project-overview');
+        }} />;
       case 'kanban':
         return <KanbanBoard />;
       case 'templates':
-        return <TemplateSelector />;
+        return <TemplateSelector onBrowseTemplates={handleBrowseTemplates} />;
       case 'list':
-        return (
-          <div className="p-6">
-            <div className="text-center py-20">
-              <List className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">List View</h3>
-              <p className="text-muted-foreground">Detailed task list view coming soon...</p>
-            </div>
-          </div>
-        );
+        return <ListView />;
       case 'calendar':
-        return (
-          <div className="p-6">
-            <div className="text-center py-20">
-              <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Calendar View</h3>
-              <p className="text-muted-foreground">Timeline and calendar view coming soon...</p>
-            </div>
-          </div>
-        );
+        return <CalendarView />;
+      case 'project-overview':
+        return selectedProject ? (
+          <ProjectOverview 
+            project={selectedProject} 
+            onBack={() => setActiveView('dashboard')} 
+          />
+        ) : <Dashboard />;
       default:
         return <Dashboard />;
     }
@@ -130,6 +147,20 @@ const ViewSelector = () => {
       <div className="flex-1 overflow-auto bg-background-secondary">
         {renderActiveView()}
       </div>
+
+      {/* Modals */}
+      <NewProjectModal
+        open={showNewProjectModal}
+        onOpenChange={setShowNewProjectModal}
+        selectedTemplate={selectedTemplate}
+        onProjectCreate={handleProjectCreate}
+      />
+
+      <TemplateGallery
+        open={showTemplateGallery}
+        onOpenChange={setShowTemplateGallery}
+        onTemplateSelect={handleTemplateSelect}
+      />
     </div>
   );
 };

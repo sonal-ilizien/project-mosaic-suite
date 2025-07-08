@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const Dashboard = () => {
+const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: any) => void }) => {
   const stats = [
     { label: 'Active Projects', value: '12', change: '+2', icon: TrendingUp, color: 'text-primary' },
     { label: 'Team Members', value: '24', change: '+3', icon: Users, color: 'text-accent' },
