@@ -20,20 +20,29 @@ export default {
 		extend: {
 			colors: {
 				border: 'hsl(var(--border))',
+				'border-light': 'hsl(var(--border-light))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
+				background: {
+					DEFAULT: 'hsl(var(--background))',
+					secondary: 'hsl(var(--background-secondary))',
+					tertiary: 'hsl(var(--background-tertiary))'
+				},
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
+					hover: 'hsl(var(--primary-hover))',
+					light: 'hsl(var(--primary-light))',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
+					hover: 'hsl(var(--secondary-hover))',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
+					light: 'hsl(var(--destructive-light))',
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
 				muted: {
@@ -42,7 +51,17 @@ export default {
 				},
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
+					hover: 'hsl(var(--accent-hover))',
+					light: 'hsl(var(--accent-light))',
 					foreground: 'hsl(var(--accent-foreground))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					light: 'hsl(var(--success-light))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					light: 'hsl(var(--warning-light))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -50,6 +69,7 @@ export default {
 				},
 				card: {
 					DEFAULT: 'hsl(var(--card))',
+					secondary: 'hsl(var(--card-secondary))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sidebar: {
@@ -62,6 +82,21 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-accent': 'var(--gradient-accent)',
+				'gradient-subtle': 'var(--gradient-subtle)'
+			},
+			boxShadow: {
+				'custom-sm': 'var(--shadow-sm)',
+				'custom-md': 'var(--shadow-md)',
+				'custom-lg': 'var(--shadow-lg)',
+				'custom-primary': 'var(--shadow-primary)'
+			},
+			transitionProperty: {
+				'smooth': 'var(--transition-smooth)',
+				'quick': 'var(--transition-quick)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
