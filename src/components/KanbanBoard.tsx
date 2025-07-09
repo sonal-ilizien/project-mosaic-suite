@@ -13,7 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 
-const KanbanBoard = () => {
+interface KanbanBoardProps {
+  tasks?: any[];
+}
+
+const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   const [columns] = useState([
     {
       id: 'todo',

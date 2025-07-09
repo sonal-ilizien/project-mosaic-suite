@@ -5,7 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-const CalendarView = () => {
+interface CalendarViewProps {
+  tasks?: any[];
+}
+
+const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'month' | 'week'>('month');
 

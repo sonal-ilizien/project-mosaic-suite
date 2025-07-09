@@ -6,7 +6,8 @@ import {
   BarChart3,
   Filter,
   Search,
-  SortAsc
+  SortAsc,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +20,10 @@ import CalendarView from "./CalendarView";
 import ProjectOverview from "./ProjectOverview";
 import NewProjectModal from "./NewProjectModal";
 import TemplateGallery from "./TemplateGallery";
+import Analytics from "./Analytics";
+import AddTaskModal from "./AddTaskModal";
 
-type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'project-overview';
+type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview';
 
 const ViewSelector = () => {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
@@ -29,13 +32,16 @@ const ViewSelector = () => {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   const views = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3, description: 'Overview & Analytics' },
     { id: 'kanban', name: 'Kanban', icon: LayoutGrid, description: 'Visual Task Board' },
     { id: 'list', name: 'List', icon: List, description: 'Detailed Task List' },
     { id: 'calendar', name: 'Calendar', icon: Calendar, description: 'Timeline View' },
-    { id: 'templates', name: 'Templates', icon: Filter, description: 'Project Templates' }
+    { id: 'templates', name: 'Templates', icon: Filter, description: 'Project Templates' },
+    { id: 'analytics', name: 'Analytics', icon: BarChart3, description: 'Charts & Reports' }
   ];
 
   const handleProjectCreate = (project: any) => {
@@ -52,6 +58,10 @@ const ViewSelector = () => {
     setShowTemplateGallery(true);
   };
 
+  const handleTaskCreate = (task: any) => {
+    setTasks(prev => [...prev, task]);
+  };
+
   const renderActiveView = () => {
     switch (activeView) {
       case 'dashboard':
@@ -60,13 +70,15 @@ const ViewSelector = () => {
           setActiveView('project-overview');
         }} />;
       case 'kanban':
-        return <KanbanBoard />;
+        return <KanbanBoard tasks={tasks} />;
       case 'templates':
         return <TemplateSelector onBrowseTemplates={handleBrowseTemplates} />;
       case 'list':
-        return <ListView />;
+        return <ListView tasks={tasks} />;
       case 'calendar':
-        return <CalendarView />;
+        return <CalendarView tasks={tasks} />;
+      case 'analytics':
+        return <Analytics />;
       case 'project-overview':
         return selectedProject ? (
           <ProjectOverview 
@@ -125,6 +137,15 @@ const ViewSelector = () => {
               <SortAsc className="w-4 h-4 mr-2" />
               Sort
             </Button>
+            
+            <Button 
+              size="sm" 
+              className="bg-gradient-primary hover:opacity-90"
+              onClick={() => setShowAddTaskModal(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Task
+            </Button>
           </div>
         </div>
 
@@ -160,6 +181,12 @@ const ViewSelector = () => {
         open={showTemplateGallery}
         onOpenChange={setShowTemplateGallery}
         onTemplateSelect={handleTemplateSelect}
+      />
+
+      <AddTaskModal
+        open={showAddTaskModal}
+        onOpenChange={setShowAddTaskModal}
+        onTaskCreate={handleTaskCreate}
       />
     </div>
   );

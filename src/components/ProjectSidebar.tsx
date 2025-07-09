@@ -9,14 +9,22 @@ import {
   Briefcase,
   DollarSign,
   Anchor,
-  User
+  User,
+  BarChart3,
+  List,
+  Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import NewProjectModal from "./NewProjectModal";
 
-const ProjectSidebar = () => {
+interface ProjectSidebarProps {
+  activeView?: string;
+  onViewChange?: (view: string) => void;
+}
+
+const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSidebarProps) => {
   const [expandedSections, setExpandedSections] = useState({
     projects: true,
     templates: false
@@ -61,19 +69,73 @@ const ProjectSidebar = () => {
       {/* Navigation Menu */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         <nav className="space-y-1">
-          <Button variant="ghost" className="w-full justify-start bg-primary-light text-primary hover:bg-primary-light">
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'dashboard' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('dashboard')}
+          >
             <LayoutDashboard className="w-4 h-4 mr-3" />
             Dashboard
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-secondary">
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'kanban' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('kanban')}
+          >
             <FolderKanban className="w-4 h-4 mr-3" />
-            Projects
+            Kanban
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-secondary">
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'list' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('list')}
+          >
+            <List className="w-4 h-4 mr-3" />
+            Tasks
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'calendar' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('calendar')}
+          >
             <Calendar className="w-4 h-4 mr-3" />
             Calendar
           </Button>
-          <Button variant="ghost" className="w-full justify-start hover:bg-secondary">
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'templates' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('templates')}
+          >
+            <Filter className="w-4 h-4 mr-3" />
+            Templates
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'analytics' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('analytics')}
+          >
+            <BarChart3 className="w-4 h-4 mr-3" />
+            Analytics
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'team' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('team')}
+          >
             <Users className="w-4 h-4 mr-3" />
             Team
           </Button>
