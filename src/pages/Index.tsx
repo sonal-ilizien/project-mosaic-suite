@@ -11,7 +11,9 @@ const Index = () => {
       <ProjectSidebar activeView={activeView} onViewChange={setActiveView} />
       
       {/* Main Content */}
-      <ViewSelector />
+      <div className="flex-1">
+        <ViewSelector activeView={activeView} />
+      </div>
     </div>
   );
 };

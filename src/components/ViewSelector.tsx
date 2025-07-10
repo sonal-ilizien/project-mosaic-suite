@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   LayoutGrid, 
   List, 
@@ -22,11 +22,24 @@ import NewProjectModal from "./NewProjectModal";
 import TemplateGallery from "./TemplateGallery";
 import Analytics from "./Analytics";
 import AddTaskModal from "./AddTaskModal";
+import ChartConfiguration from "./ChartConfiguration";
+import TemplateComparison from "./TemplateComparison";
+import SharedWhiteboard from "./SharedWhiteboard";
 
-type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview';
+type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview' | 'chart-config' | 'template-comparison' | 'whiteboard';
 
-const ViewSelector = () => {
-  const [activeView, setActiveView] = useState<ViewType>('dashboard');
+interface ViewSelectorProps {
+  activeView?: string;
+}
+
+const ViewSelector = ({ activeView: propActiveView }: ViewSelectorProps) => {
+  const [activeView, setActiveView] = useState<ViewType>((propActiveView as ViewType) || 'dashboard');
+
+  useEffect(() => {
+    if (propActiveView && propActiveView !== activeView) {
+      setActiveView(propActiveView as ViewType);
+    }
+  }, [propActiveView]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -79,6 +92,12 @@ const ViewSelector = () => {
         return <CalendarView tasks={tasks} />;
       case 'analytics':
         return <Analytics />;
+      case 'chart-config':
+        return <ChartConfiguration />;
+      case 'template-comparison':
+        return <TemplateComparison />;
+      case 'whiteboard':
+        return <SharedWhiteboard />;
       case 'project-overview':
         return selectedProject ? (
           <ProjectOverview 

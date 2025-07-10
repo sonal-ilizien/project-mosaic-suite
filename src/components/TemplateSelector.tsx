@@ -13,9 +13,11 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import NewProjectModal from "./NewProjectModal";
 
 const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => void }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
 
   const templates = [
     {
@@ -80,8 +82,7 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
 
   const handleCreateProject = () => {
     if (selectedTemplate) {
-      // Here you would navigate to project creation with the selected template
-      console.log(`Creating project with template: ${selectedTemplate}`);
+      setShowNewProjectModal(true);
     }
   };
 
@@ -185,6 +186,17 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
           </p>
         </div>
       )}
+
+      {/* New Project Modal */}
+      <NewProjectModal
+        open={showNewProjectModal}
+        onOpenChange={setShowNewProjectModal}
+        selectedTemplate={templates.find(t => t.id === selectedTemplate)}
+        onProjectCreate={(project) => {
+          console.log('Project created:', project);
+          setShowNewProjectModal(false);
+        }}
+      />
     </div>
   );
 };

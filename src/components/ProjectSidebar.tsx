@@ -12,7 +12,11 @@ import {
   User,
   BarChart3,
   List,
-  Filter
+  Filter,
+  GitCompare,
+  MessageSquare,
+  Clock,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +136,36 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSideb
           <Button 
             variant="ghost" 
             className={`w-full justify-start ${
+              activeView === 'chart-config' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('chart-config')}
+          >
+            <TrendingUp className="w-4 h-4 mr-3" />
+            Charts
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'template-comparison' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('template-comparison')}
+          >
+            <GitCompare className="w-4 h-4 mr-3" />
+            Compare Templates
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
+              activeView === 'whiteboard' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            }`}
+            onClick={() => onViewChange?.('whiteboard')}
+          >
+            <MessageSquare className="w-4 h-4 mr-3" />
+            Company Board
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${
               activeView === 'team' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
             }`}
             onClick={() => onViewChange?.('team')}
@@ -168,6 +202,29 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSideb
           )}
         </div>
 
+        {/* Recent Projects */}
+        <div className="pt-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-foreground">Recent Projects</span>
+            <Clock className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <div className="ml-2 space-y-1">
+            {projects.slice(0, 3).map((project, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                className="w-full justify-start text-sm py-2 h-auto hover:bg-secondary"
+                onClick={() => onViewChange?.('project-overview')}
+              >
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-xs">{project.name}</div>
+                  <div className="text-xs text-muted-foreground">{project.progress}% complete</div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </div>
+
         {/* Active Projects */}
         <div className="pt-4">
           <Button
@@ -186,6 +243,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSideb
                   key={index}
                   variant="ghost"
                   className="w-full justify-start text-sm py-3 h-auto hover:bg-secondary"
+                  onClick={() => onViewChange?.('project-overview')}
                 >
                   <div className="flex-1 text-left">
                     <div className="font-medium">{project.name}</div>

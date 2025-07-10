@@ -6,18 +6,32 @@ import {
   Calendar, 
   Flag,
   MessageSquare,
-  Paperclip
+  Paperclip,
+  Settings,
+  Eye,
+  Filter,
+  List
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AddTaskModal from "./AddTaskModal";
 
 interface KanbanBoardProps {
   tasks?: any[];
 }
 
 const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
+  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
+  const [displaySettings, setDisplaySettings] = useState({
+    viewType: 'flat', // 'flat' or 'nested'
+    showCompleted: true,
+    groupBy: 'status' // 'status', 'priority', 'assignee'
+  });
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [columns] = useState([
     {
       id: 'todo',
@@ -145,6 +159,60 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           <p className="text-muted-foreground">Mobile App Redesign Sprint</p>
         </div>
         <div className="flex space-x-3">
+          <Dialog open={showDisplaySettings} onOpenChange={setShowDisplaySettings}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                Display Settings
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Display Settings</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">View Type</label>
+                  <Select 
+                    value={displaySettings.viewType} 
+                    onValueChange={(value) => setDisplaySettings({...displaySettings, viewType: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="flat">Flat View</SelectItem>
+                      <SelectItem value="nested">Nested View</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Group By</label>
+                  <Select 
+                    value={displaySettings.groupBy} 
+                    onValueChange={(value) => setDisplaySettings({...displaySettings, groupBy: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="status">Status</SelectItem>
+                      <SelectItem value="priority">Priority</SelectItem>
+                      <SelectItem value="assignee">Assignee</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    checked={displaySettings.showCompleted}
+                    onChange={(e) => setDisplaySettings({...displaySettings, showCompleted: e.target.checked})}
+                  />
+                  <label className="text-sm">Show Completed Tasks</label>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline">
             <User className="w-4 h-4 mr-2" />
             Assign
@@ -153,7 +221,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             <Calendar className="w-4 h-4 mr-2" />
             Timeline
           </Button>
-          <Button className="bg-gradient-primary hover:opacity-90">
+          <Button 
+            className="bg-gradient-primary hover:opacity-90"
+            onClick={() => setShowAddTaskModal(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Task
           </Button>
@@ -240,6 +311,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               <Button 
                 variant="ghost" 
                 className="w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-primary-light text-muted-foreground hover:text-primary"
+                onClick={() => setShowAddTaskModal(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
@@ -248,6 +320,16 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           </div>
         ))}
       </div>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        open={showAddTaskModal}
+        onOpenChange={setShowAddTaskModal}
+        onTaskCreate={(task) => {
+          console.log('Task created:', task);
+          setShowAddTaskModal(false);
+        }}
+      />
     </div>
   );
 };
