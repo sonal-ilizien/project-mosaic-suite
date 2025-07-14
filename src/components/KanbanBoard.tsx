@@ -32,34 +32,68 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     groupBy: 'status' // 'status', 'priority', 'assignee'
   });
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const [columns] = useState([
+  const [columns, setColumns] = useState([
     {
       id: 'todo',
       title: 'To Do',
       color: 'bg-muted',
       tasks: [
-        {
-          id: '1',
-          title: 'Design new landing page',
-          description: 'Create wireframes and mockups for the new marketing site',
-          priority: 'High',
-          assignee: { name: 'Sarah Chen', avatar: 'SC' },
-          dueDate: 'Dec 15',
-          comments: 3,
-          attachments: 2,
-          tags: ['Design', 'Marketing']
-        },
-        {
-          id: '2',
-          title: 'API Integration Research',
-          description: 'Research third-party APIs for payment processing',
-          priority: 'Medium',
-          assignee: { name: 'Mike Johnson', avatar: 'MJ' },
-          dueDate: 'Dec 18',
-          comments: 1,
-          attachments: 0,
-          tags: ['Development', 'Research']
-        }
+          {
+            id: '1',
+            title: 'Design new landing page',
+            description: 'Create wireframes and mockups for the new marketing site',
+            priority: 'High',
+            assignee: { name: 'Sarah Chen', avatar: 'SC' },
+            dueDate: 'Dec 15',
+            comments: 3,
+            attachments: 2,
+            tags: ['Design', 'Marketing'],
+            status: 'todo',
+            parentId: null,
+            subtasks: ['1-1', '1-2']
+          },
+          {
+            id: '1-1',
+            title: 'Create wireframes',
+            description: 'Low-fidelity wireframes for main pages',
+            priority: 'Medium',
+            assignee: { name: 'Sarah Chen', avatar: 'SC' },
+            dueDate: 'Dec 13',
+            comments: 1,
+            attachments: 0,
+            tags: ['Design'],
+            status: 'todo',
+            parentId: '1',
+            subtasks: []
+          },
+          {
+            id: '1-2', 
+            title: 'Design mockups',
+            description: 'High-fidelity mockups based on wireframes',
+            priority: 'Medium',
+            assignee: { name: 'Sarah Chen', avatar: 'SC' },
+            dueDate: 'Dec 15',
+            comments: 0,
+            attachments: 0,
+            tags: ['Design'],
+            status: 'todo',
+            parentId: '1',
+            subtasks: []
+          },
+          {
+            id: '2',
+            title: 'API Integration Research',
+            description: 'Research third-party APIs for payment processing',
+            priority: 'Medium',
+            assignee: { name: 'Mike Johnson', avatar: 'MJ' },
+            dueDate: 'Dec 18',
+            comments: 1,
+            attachments: 0,
+            tags: ['Development', 'Research'],
+            status: 'todo',
+            parentId: null,
+            subtasks: []
+          }
       ]
     },
     {
@@ -76,7 +110,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           dueDate: 'Dec 20',
           comments: 8,
           attachments: 3,
-          tags: ['Development', 'Security']
+          tags: ['Development', 'Security'],
+          status: 'inprogress',
+          parentId: null,
+          subtasks: []
         },
         {
           id: '4',
@@ -87,7 +124,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           dueDate: 'Dec 16',
           comments: 5,
           attachments: 1,
-          tags: ['Database', 'Migration']
+          tags: ['Database', 'Migration'],
+          status: 'inprogress',
+          parentId: null,
+          subtasks: []
         }
       ]
     },
@@ -105,7 +145,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           dueDate: 'Dec 14',
           comments: 12,
           attachments: 4,
-          tags: ['Testing', 'Mobile']
+          tags: ['Testing', 'Mobile'],
+          status: 'review',
+          parentId: null,
+          subtasks: []
         }
       ]
     },
@@ -123,7 +166,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           dueDate: 'Dec 12',
           comments: 2,
           attachments: 5,
-          tags: ['Documentation']
+          tags: ['Documentation'],
+          status: 'done',
+          parentId: null,
+          subtasks: []
         },
         {
           id: '7',
@@ -134,7 +180,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           dueDate: 'Dec 10',
           comments: 4,
           attachments: 8,
-          tags: ['Design', 'Branding']
+          tags: ['Design', 'Branding'],
+          status: 'done',
+          parentId: null,
+          subtasks: []
         }
       ]
     }
@@ -148,6 +197,152 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
       case 'Low': return 'bg-muted text-muted-foreground';
       default: return 'bg-secondary text-secondary-foreground';
     }
+  };
+
+  // Get filtered and grouped tasks based on display settings
+  const getFilteredTasks = () => {
+    let allTasks = [];
+    columns.forEach(column => {
+      allTasks.push(...column.tasks);
+    });
+
+    // Filter completed tasks if needed
+    if (!displaySettings.showCompleted) {
+      allTasks = allTasks.filter(task => task.status !== 'done');
+    }
+
+    return allTasks;
+  };
+
+  // Get tasks for specific column based on grouping
+  const getTasksForColumn = (columnId: string) => {
+    const allTasks = getFilteredTasks();
+    
+    if (displaySettings.groupBy === 'status') {
+      return allTasks.filter(task => task.status === columnId);
+    } else if (displaySettings.groupBy === 'priority') {
+      return allTasks.filter(task => task.priority === columnId);
+    } else if (displaySettings.groupBy === 'assignee') {
+      return allTasks.filter(task => task.assignee.name === columnId);
+    }
+    
+    return [];
+  };
+
+  // Get columns based on grouping
+  const getDisplayColumns = () => {
+    if (displaySettings.groupBy === 'priority') {
+      return [
+        { id: 'Critical', title: 'Critical', color: 'bg-destructive', tasks: [] },
+        { id: 'High', title: 'High Priority', color: 'bg-warning', tasks: [] },
+        { id: 'Medium', title: 'Medium Priority', color: 'bg-primary', tasks: [] },
+        { id: 'Low', title: 'Low Priority', color: 'bg-muted', tasks: [] }
+      ];
+    } else if (displaySettings.groupBy === 'assignee') {
+      const allTasks = getFilteredTasks();
+      const assignees = [...new Set(allTasks.map(task => task.assignee.name))];
+      return assignees.map(assignee => ({
+        id: assignee,
+        title: assignee,
+        color: 'bg-primary',
+        tasks: []
+      }));
+    } else {
+      return columns;
+    }
+  };
+
+  // Render nested task view
+  const renderNestedTask = (task: any, level: number = 0) => {
+    const allTasks = getFilteredTasks();
+    const subtasks = allTasks.filter(t => t.parentId === task.id);
+    
+    return (
+      <div key={task.id} className={`${level > 0 ? 'ml-4 border-l border-border pl-3' : ''}`}>
+        <Card className="p-4 hover:shadow-custom-md transition-all cursor-pointer mb-2">
+          {/* Task Header */}
+          <div className="flex items-start justify-between mb-2">
+            <h4 className="font-medium text-foreground text-sm leading-tight">
+              {task.title}
+            </h4>
+            <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
+              {task.priority}
+            </Badge>
+          </div>
+
+          {/* Description */}
+          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+            {task.description}
+          </p>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1 mb-3">
+            {task.tags.map((tag, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Task Footer */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Avatar className="w-6 h-6 bg-primary text-primary-foreground text-xs">
+                {task.assignee.avatar}
+              </Avatar>
+              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                <Calendar className="w-3 h-3" />
+                <span>{task.dueDate}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {task.comments > 0 && (
+                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <MessageSquare className="w-3 h-3" />
+                  <span>{task.comments}</span>
+                </div>
+              )}
+              {task.attachments > 0 && (
+                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <Paperclip className="w-3 h-3" />
+                  <span>{task.attachments}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Render subtasks */}
+        {displaySettings.viewType === 'nested' && subtasks.map(subtask => 
+          renderNestedTask(subtask, level + 1)
+        )}
+      </div>
+    );
+  };
+
+  const addNewTask = (task: any) => {
+    const newTask = {
+      ...task,
+      id: Date.now().toString(),
+      comments: 0,
+      attachments: 0,
+      status: 'todo',
+      subtasks: []
+    };
+
+    const targetColumnId = newTask.status;
+    const updatedColumns = columns.map(column => {
+      if (column.id === targetColumnId) {
+        return {
+          ...column,
+          tasks: [...column.tasks, newTask]
+        };
+      }
+      return column;
+    });
+    
+    setColumns(updatedColumns);
   };
 
   return (
@@ -233,92 +428,101 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
       {/* Kanban Columns */}
       <div className="flex space-x-6 overflow-x-auto pb-6">
-        {columns.map((column) => (
-          <div key={column.id} className="flex-shrink-0 w-80">
-            {/* Column Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                <h3 className="font-semibold text-foreground">{column.title}</h3>
-                <Badge variant="outline" className="text-xs">
-                  {column.tasks.length}
-                </Badge>
+        {getDisplayColumns().map((column) => {
+          const columnTasks = getTasksForColumn(column.id);
+          const parentTasks = columnTasks.filter(task => !task.parentId);
+          
+          return (
+            <div key={column.id} className="flex-shrink-0 w-80">
+              {/* Column Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${column.color}`} />
+                  <h3 className="font-semibold text-foreground">{column.title}</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {columnTasks.length}
+                  </Badge>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </div>
 
-            {/* Tasks */}
-            <div className="space-y-3">
-              {column.tasks.map((task) => (
-                <Card key={task.id} className="p-4 hover:shadow-custom-md transition-all cursor-pointer">
-                  {/* Task Header */}
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-foreground text-sm leading-tight">
-                      {task.title}
-                    </h4>
-                    <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
-                      {task.priority}
-                    </Badge>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                    {task.description}
-                  </p>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {task.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  {/* Task Footer */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-6 h-6 bg-primary text-primary-foreground text-xs">
-                        {task.assignee.avatar}
-                      </Avatar>
-                      <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        <span>{task.dueDate}</span>
+              {/* Tasks */}
+              <div className="space-y-3">
+                {displaySettings.viewType === 'nested' ? (
+                  parentTasks.map((task) => renderNestedTask(task))
+                ) : (
+                  columnTasks.map((task) => (
+                    <Card key={task.id} className="p-4 hover:shadow-custom-md transition-all cursor-pointer">
+                      {/* Task Header */}
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-foreground text-sm leading-tight">
+                          {task.title}
+                        </h4>
+                        <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
+                          {task.priority}
+                        </Badge>
                       </div>
-                    </div>
 
-                    <div className="flex items-center space-x-2">
-                      {task.comments > 0 && (
-                        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                          <MessageSquare className="w-3 h-3" />
-                          <span>{task.comments}</span>
-                        </div>
-                      )}
-                      {task.attachments > 0 && (
-                        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                          <Paperclip className="w-3 h-3" />
-                          <span>{task.attachments}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                      {/* Description */}
+                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                        {task.description}
+                      </p>
 
-              {/* Add Task Button */}
-              <Button 
-                variant="ghost" 
-                className="w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-primary-light text-muted-foreground hover:text-primary"
-                onClick={() => setShowAddTaskModal(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Task
-              </Button>
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {task.tags.map((tag, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      {/* Task Footer */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="w-6 h-6 bg-primary text-primary-foreground text-xs">
+                            {task.assignee.avatar}
+                          </Avatar>
+                          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            <span>{task.dueDate}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          {task.comments > 0 && (
+                            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                              <MessageSquare className="w-3 h-3" />
+                              <span>{task.comments}</span>
+                            </div>
+                          )}
+                          {task.attachments > 0 && (
+                            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                              <Paperclip className="w-3 h-3" />
+                              <span>{task.attachments}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+
+                {/* Add Task Button */}
+                <Button 
+                  variant="ghost" 
+                  className="w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-primary-light text-muted-foreground hover:text-primary"
+                  onClick={() => setShowAddTaskModal(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Task
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add Task Modal */}
@@ -326,7 +530,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         open={showAddTaskModal}
         onOpenChange={setShowAddTaskModal}
         onTaskCreate={(task) => {
-          console.log('Task created:', task);
+          addNewTask(task);
           setShowAddTaskModal(false);
         }}
       />

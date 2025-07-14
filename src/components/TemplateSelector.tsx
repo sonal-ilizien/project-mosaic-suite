@@ -8,7 +8,12 @@ import {
   ArrowRight,
   Sparkles,
   Building,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  UserCheck,
+  Briefcase,
+  GraduationCap,
+  Rocket
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,18 +32,18 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
       icon: User,
       color: 'bg-primary',
       gradient: 'from-blue-500 to-blue-600',
-      features: ['Daily To-dos', 'Habit Tracking', 'Goal Setting', 'Time Blocking', 'Personal Calendar'],
+      features: ['Daily To-dos', 'Habit Tracking', 'Goal Setting', 'Time Blocking'],
       useCase: 'Perfect for individuals managing personal projects and daily routines',
       complexity: 'Beginner'
     },
     {
       id: 'agile',
       name: 'Agile Development',
-      description: 'Sprint planning, task allocation, team collaboration, and bug tracking for software teams.',
+      description: 'Sprint planning, task allocation, team collaboration, and bug tracking.',
       icon: Users,
       color: 'bg-accent',
       gradient: 'from-green-500 to-green-600',
-      features: ['Sprint Planning', 'User Stories', 'Bug Tracking', 'Team Collaboration', 'Velocity Charts'],
+      features: ['Sprint Planning', 'User Stories', 'Bug Tracking', 'Team Collaboration'],
       useCase: 'Ideal for software development teams using Agile methodologies',
       complexity: 'Intermediate'
     },
@@ -49,7 +54,7 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
       icon: DollarSign,
       color: 'bg-warning',
       gradient: 'from-yellow-500 to-orange-500',
-      features: ['Budget Planning', 'Expense Tracking', 'Invoice Management', 'Financial Reports', 'Payroll Management'],
+      features: ['Budget Planning', 'Expense Tracking', 'Invoice Management', 'Financial Reports'],
       useCase: 'Essential for businesses managing finances and accounting processes',
       complexity: 'Advanced'
     },
@@ -60,9 +65,75 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
       icon: Anchor,
       color: 'bg-destructive',
       gradient: 'from-red-500 to-red-600',
-      features: ['Task Breakdown Structure', 'Equipment Tracking', 'Milestone Scheduling', 'Gantt Charts', 'S-curve Analytics'],
+      features: ['Task Breakdown', 'Equipment Tracking', 'Milestone Scheduling', 'Gantt Charts'],
       useCase: 'Specialized for shipbuilding and large-scale construction projects',
       complexity: 'Expert'
+    },
+    {
+      id: 'event',
+      name: 'Event Planning',
+      description: 'Track vendors, dates, budgets, guests, tasks for weddings, conferences.',
+      icon: Calendar,
+      color: 'bg-purple-500',
+      gradient: 'from-purple-500 to-purple-600',
+      features: ['Vendor Management', 'Budget Tracking', 'Guest Lists', 'Timeline Planning'],
+      useCase: 'Perfect for event coordinators and wedding planners',
+      complexity: 'Intermediate'
+    },
+    {
+      id: 'hr',
+      name: 'HR / Recruitment',
+      description: 'Hiring pipelines, onboarding checklists, employee databases.',
+      icon: UserCheck,
+      color: 'bg-indigo-500',
+      gradient: 'from-indigo-500 to-indigo-600',
+      features: ['Hiring Pipeline', 'Onboarding', 'Employee Database', 'Performance Reviews'],
+      useCase: 'Essential for HR departments and recruitment agencies',
+      complexity: 'Intermediate'
+    },
+    {
+      id: 'construction',
+      name: 'Construction / Real Estate',
+      description: 'Milestones for permits, contractors, inspection stages, payments.',
+      icon: Building,
+      color: 'bg-amber-500',
+      gradient: 'from-amber-500 to-amber-600',
+      features: ['Permit Tracking', 'Contractor Management', 'Inspections', 'Payment Schedule'],
+      useCase: 'Ideal for construction companies and real estate developers',
+      complexity: 'Advanced'
+    },
+    {
+      id: 'consulting',
+      name: 'Client Service / Consulting',
+      description: 'Per-client templates: deliverables, billing, tasks, communication logs.',
+      icon: Briefcase,
+      color: 'bg-teal-500',
+      gradient: 'from-teal-500 to-teal-600',
+      features: ['Client Management', 'Deliverables', 'Billing', 'Communication Logs'],
+      useCase: 'Perfect for consulting firms and service providers',
+      complexity: 'Intermediate'
+    },
+    {
+      id: 'education',
+      name: 'Education / Course Planning',
+      description: 'Syllabus design, module breakdown, student tracking.',
+      icon: GraduationCap,
+      color: 'bg-pink-500',
+      gradient: 'from-pink-500 to-pink-600',
+      features: ['Syllabus Design', 'Module Planning', 'Student Tracking', 'Assignment Management'],
+      useCase: 'Ideal for educators and training organizations',
+      complexity: 'Beginner'
+    },
+    {
+      id: 'product',
+      name: 'Product Launch Roadmaps',
+      description: 'Beta testing, stakeholder feedback, feature rollouts, release logs.',
+      icon: Rocket,
+      color: 'bg-cyan-500',
+      gradient: 'from-cyan-500 to-cyan-600',
+      features: ['Beta Testing', 'Feedback Collection', 'Feature Rollouts', 'Release Planning'],
+      useCase: 'Essential for product managers and development teams',
+      complexity: 'Advanced'
     }
   ];
 

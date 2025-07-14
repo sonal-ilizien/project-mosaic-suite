@@ -16,7 +16,13 @@ import {
   GitCompare,
   MessageSquare,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Menu,
+  X,
+  UserCheck,
+  Building,
+  GraduationCap,
+  Rocket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +32,11 @@ import NewProjectModal from "./NewProjectModal";
 interface ProjectSidebarProps {
   activeView?: string;
   onViewChange?: (view: string) => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSidebarProps) => {
+const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = false, onToggleCollapse }: ProjectSidebarProps) => {
   const [expandedSections, setExpandedSections] = useState({
     projects: true,
     templates: false
@@ -43,10 +51,16 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSideb
   };
 
   const templates = [
-    { id: 'personal', name: 'Personal Tasks', icon: User, color: 'bg-primary' },
-    { id: 'agile', name: 'Agile Sprint', icon: FolderKanban, color: 'bg-accent' },
+    { id: 'personal', name: 'Personal Productivity', icon: User, color: 'bg-primary' },
+    { id: 'agile', name: 'Agile Development', icon: FolderKanban, color: 'bg-accent' },
     { id: 'finance', name: 'Finance Management', icon: DollarSign, color: 'bg-warning' },
-    { id: 'shipbuilding', name: 'Shipbuilding', icon: Anchor, color: 'bg-destructive' }
+    { id: 'shipbuilding', name: 'Shipbuilding Projects', icon: Anchor, color: 'bg-destructive' },
+    { id: 'event', name: 'Event Planning', icon: Calendar, color: 'bg-purple-500' },
+    { id: 'hr', name: 'HR / Recruitment', icon: UserCheck, color: 'bg-indigo-500' },
+    { id: 'construction', name: 'Construction / Real Estate', icon: Building, color: 'bg-amber-500' },
+    { id: 'consulting', name: 'Client Service / Consulting', icon: Briefcase, color: 'bg-teal-500' },
+    { id: 'education', name: 'Education / Course Planning', icon: GraduationCap, color: 'bg-pink-500' },
+    { id: 'product', name: 'Product Launch Roadmaps', icon: Rocket, color: 'bg-cyan-500' }
   ];
 
   const projects = [
@@ -56,7 +70,24 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSideb
   ];
 
   return (
-    <div className="w-64 bg-background-secondary border-r border-border h-screen flex flex-col">
+    <div 
+      className="w-64 bg-background-secondary border-r border-border h-screen flex flex-col relative"
+      style={{
+        background: 'linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--background-secondary)) 100%)'
+      }}
+    >
+      {/* Close button for collapsed state */}
+      {!collapsed && onToggleCollapse && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleCollapse}
+          className="absolute top-4 right-4 z-10"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      )}
+      
       {/* Header */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
@@ -213,7 +244,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange }: ProjectSideb
               <Button
                 key={index}
                 variant="ghost"
-                className="w-full justify-start text-sm py-2 h-auto hover:bg-secondary"
+                className="w-full justify-start text-sm py-2 h-auto hover:bg-secondary transition-all hover:scale-105"
                 onClick={() => onViewChange?.('project-overview')}
               >
                 <div className="flex-1 text-left">

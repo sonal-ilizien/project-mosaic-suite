@@ -136,11 +136,62 @@ const ChartConfiguration = () => {
     const chart = {
       id: Date.now().toString(),
       ...newChart,
-      isPinned: false
+      isPinned: false,
+      data: sampleData // Add sample data for immediate rendering
     };
     setSavedCharts([...savedCharts, chart]);
     setNewChart({ name: '', type: 'bar', xAxis: '', yAxis: '', project: 'all', dateRange: '30days' });
     setShowCreateModal(false);
+  };
+
+  const renderChart = (chart: any) => {
+    const data = chart.data || sampleData;
+    
+    if (chart.type === 'bar') {
+      return (
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip />
+            <Bar dataKey="value" fill="hsl(var(--primary))" />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    } else if (chart.type === 'line') {
+      return (
+        <ResponsiveContainer width="100%" height={200}>
+          <RechartsLine data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip />
+            <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" />
+          </RechartsLine>
+        </ResponsiveContainer>
+      );
+    } else if (chart.type === 'pie') {
+      return (
+        <ResponsiveContainer width="100%" height={200}>
+          <RechartsPie>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              fill="hsl(var(--primary))"
+              dataKey="value"
+            >
+              {data.map((entry: any, index: number) => (
+                <Cell key={`cell-${index}`} fill={`hsl(var(--primary))`} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </RechartsPie>
+        </ResponsiveContainer>
+      );
+    }
   };
 
   const togglePin = (chartId: string) => {
@@ -298,6 +349,11 @@ const ChartConfiguration = () => {
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
+              </div>
+              
+              {/* Rendered Chart */}
+              <div className="mb-3 bg-background-secondary rounded-lg p-2">
+                {renderChart(chart)}
               </div>
               
               <div className="space-y-2 mb-3">
