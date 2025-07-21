@@ -19,10 +19,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import NewProjectModal from "./NewProjectModal";
+import { useProjects } from "../contexts/ProjectContext";
 
 const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => void }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const { addProject } = useProjects();
 
   const templates = [
     {
@@ -161,9 +163,20 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="text-center mb-10">
-        <div className="flex items-center justify-center mb-4">
-          <Sparkles className="w-8 h-8 text-primary mr-3" />
-          <h1 className="text-4xl font-bold text-foreground">Choose Your Template</h1>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-center flex-1">
+            <Sparkles className="w-8 h-8 text-primary mr-3" />
+            <h1 className="text-4xl font-bold text-foreground">Choose Your Template</h1>
+          </div>
+          <Button 
+            variant="outline" 
+            size="lg"
+            className="px-6"
+            onClick={onBrowseTemplates}
+          >
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Browse Examples
+          </Button>
         </div>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Select a pre-configured template to get started quickly, or customize your own workflow
@@ -175,13 +188,30 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
         {templates.map((template) => (
           <Card 
             key={template.id}
-            className={`p-6 cursor-pointer transition-all duration-300 hover:shadow-custom-lg ${
+            className={`p-6 cursor-pointer transition-all duration-300 hover:shadow-custom-lg relative ${
               selectedTemplate === template.id 
                 ? 'ring-2 ring-primary shadow-custom-primary' 
                 : 'hover:shadow-custom-md'
             }`}
             onClick={() => handleTemplateSelect(template.id)}
           >
+            {/* Create Project Button - Only show on selected template */}
+            {selectedTemplate === template.id && (
+              <div className="absolute bottom-4 right-4 z-10">
+                <Button 
+                  size="sm"
+                  className="bg-gradient-primary hover:opacity-90 text-white shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCreateProject();
+                  }}
+                >
+                  Create New Project
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            )}
+
             <div className="flex items-start space-x-4">
               <div className={`p-4 rounded-xl bg-gradient-to-br ${template.gradient} shadow-custom-md`}>
                 <template.icon className="w-8 h-8 text-white" />
@@ -227,28 +257,8 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
         ))}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center space-x-4">
-        <Button 
-          variant="outline" 
-          size="lg"
-          className="px-8"
-          onClick={onBrowseTemplates}
-        >
-          <TrendingUp className="w-4 h-4 mr-2" />
-          Browse Examples
-        </Button>
-        
-        <Button 
-          size="lg"
-          className="px-8 bg-gradient-primary hover:opacity-90"
-          disabled={!selectedTemplate}
-          onClick={handleCreateProject}
-        >
-          Create Project
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
+      {/* Browse Examples Button */}
+      {/* This button is now moved to the top right */}
 
       {selectedTemplate && (
         <div className="mt-8 text-center">
@@ -263,8 +273,23 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
         open={showNewProjectModal}
         onOpenChange={setShowNewProjectModal}
         selectedTemplate={templates.find(t => t.id === selectedTemplate)}
-        onProjectCreate={(project) => {
-          console.log('Project created:', project);
+        onProjectCreate={(projectData: {name: string; template?: string; status?: string; priority?: string; lead?: string; endDate?: Date; description?: string}) => {
+          // Convert the modal project data to ListView Project format
+          const project = {
+            id: Date.now(),
+            name: projectData.name,
+            type: projectData.template || 'General',
+            status: projectData.status || 'Planning',
+            priority: projectData.priority || 'Medium',
+            assignee: projectData.lead || 'Unassigned',
+            dueDate: projectData.endDate ? new Date(projectData.endDate).toISOString().split('T')[0] : '',
+            progress: 0,
+            tasks: 0,
+            completedTasks: 0,
+            description: projectData.description || ''
+          };
+          
+          addProject(project);
           setShowNewProjectModal(false);
         }}
       />

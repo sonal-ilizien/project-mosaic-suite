@@ -4,9 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
 interface CalendarViewProps {
-  tasks?: any[];
+  tasks?: unknown[];
 }
 
 const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
@@ -70,144 +76,160 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateMonth('prev')}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-lg font-medium text-foreground min-w-[140px] text-center">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateMonth('next')}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
+    <TooltipProvider>
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground">Calendar</h1>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+              >
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>All Events</DropdownMenuItem>
-              <DropdownMenuItem>Meetings</DropdownMenuItem>
-              <DropdownMenuItem>Deadlines</DropdownMenuItem>
-              <DropdownMenuItem>Milestones</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button className="bg-gradient-primary hover:opacity-90">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
-        </div>
-      </div>
-
-      {/* Calendar Grid */}
-      <Card className="p-6">
-        {/* Week day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-4">
-          {weekDays.map((day) => (
-            <div key={day} className="p-3 text-center font-medium text-muted-foreground">
-              {day}
+              <span className="text-sm sm:text-lg font-medium text-foreground min-w-[100px] sm:min-w-[140px] text-center">
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
-          ))}
+          </div>
+
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Filter className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Filter</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>All Events</DropdownMenuItem>
+                    <DropdownMenuItem>Meetings</DropdownMenuItem>
+                    <DropdownMenuItem>Deadlines</DropdownMenuItem>
+                    <DropdownMenuItem>Milestones</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Filter Events</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button className="bg-gradient-primary hover:opacity-90" size="sm">
+                  <Plus className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Add Event</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Event</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
-        {/* Calendar days */}
-        <div className="grid grid-cols-7 gap-1">
-          {getDaysInMonth(currentDate).map((day, index) => (
-            <div
-              key={index}
-              className={`min-h-[100px] p-2 border border-border rounded-lg ${
-                day ? 'bg-background hover:bg-background-secondary cursor-pointer' : ''
-              } ${
-                day === new Date().getDate() && 
-                currentDate.getMonth() === new Date().getMonth() && 
-                currentDate.getFullYear() === new Date().getFullYear()
-                  ? 'ring-2 ring-primary bg-primary-light'
-                  : ''
-              }`}
-            >
-              {day && (
-                <>
-                  <div className="font-medium text-foreground mb-1">{day}</div>
-                  <div className="space-y-1">
-                    {getEventsForDate(day).map((event) => (
-                      <div
-                        key={event.id}
-                        className={`text-xs p-1 rounded text-white ${event.color} truncate`}
-                        title={event.title}
-                      >
-                        {event.title}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Upcoming Events */}
-      <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-4">Upcoming Events</h3>
-        <div className="space-y-3">
-          {events.slice(0, 5).map((event) => (
-            <div key={event.id} className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${event.color}`}></div>
-              <div className="flex-1">
-                <div className="font-medium text-foreground">{event.title}</div>
-                <div className="text-sm text-muted-foreground">{event.date}</div>
+        {/* Calendar Grid */}
+        <Card className="p-3 sm:p-6">
+          {/* Week day headers */}
+          <div className="grid grid-cols-7 gap-1 mb-2 sm:mb-4">
+            {weekDays.map((day) => (
+              <div key={day} className="p-2 sm:p-3 text-center font-medium text-muted-foreground text-xs sm:text-sm">
+                {day}
               </div>
-              <Badge variant="outline" className="capitalize">
-                {event.type}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </Card>
+            ))}
+          </div>
 
-      {/* Legend */}
-      <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-3">Event Types</h3>
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <span className="text-sm text-muted-foreground">Meetings</span>
+          {/* Calendar days */}
+          <div className="grid grid-cols-7 gap-1">
+            {getDaysInMonth(currentDate).map((day, index) => (
+              <div
+                key={index}
+                className={`min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border border-border rounded-lg ${
+                  day ? 'bg-background hover:bg-background-secondary cursor-pointer' : ''
+                } ${
+                  day === new Date().getDate() && 
+                  currentDate.getMonth() === new Date().getMonth() && 
+                  currentDate.getFullYear() === new Date().getFullYear()
+                    ? 'ring-2 ring-primary bg-primary-light'
+                    : ''
+                }`}
+              >
+                {day && (
+                  <>
+                    <div className="font-medium text-foreground mb-1 text-xs sm:text-sm">{day}</div>
+                    <div className="space-y-1">
+                      {getEventsForDate(day).map((event) => (
+                        <div
+                          key={event.id}
+                          className={`text-xs p-1 rounded text-white ${event.color} truncate`}
+                          title={event.title}
+                        >
+                          {event.title}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-destructive"></div>
-            <span className="text-sm text-muted-foreground">Deadlines</span>
+        </Card>
+
+        {/* Upcoming Events */}
+        <Card className="p-3 sm:p-4">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Upcoming Events</h3>
+          <div className="space-y-2 sm:space-y-3">
+            {events.slice(0, 5).map((event) => (
+              <div key={event.id} className="flex items-center gap-2 sm:gap-3">
+                <div className={`w-3 h-3 rounded-full ${event.color}`}></div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-foreground text-xs sm:text-sm truncate">{event.title}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{event.date}</div>
+                </div>
+                <Badge variant="outline" className="capitalize text-xs">
+                  {event.type}
+                </Badge>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-success"></div>
-            <span className="text-sm text-muted-foreground">Milestones</span>
+        </Card>
+
+        {/* Legend */}
+        <Card className="p-3 sm:p-4">
+          <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">Event Types</h3>
+          <div className="flex flex-wrap gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-primary"></div>
+              <span className="text-xs sm:text-sm text-muted-foreground">Meetings</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-destructive"></div>
+              <span className="text-xs sm:text-sm text-muted-foreground">Deadlines</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-accent"></div>
+              <span className="text-xs sm:text-sm text-muted-foreground">Milestones</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-warning"></div>
+              <span className="text-xs sm:text-sm text-muted-foreground">Presentations</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-warning"></div>
-            <span className="text-sm text-muted-foreground">Presentations</span>
-          </div>
-        </div>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </TooltipProvider>
   );
 };
 

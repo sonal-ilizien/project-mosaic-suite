@@ -34,9 +34,10 @@ interface ProjectSidebarProps {
   onViewChange?: (view: string) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  isMobile?: boolean;
 }
 
-const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = false, onToggleCollapse }: ProjectSidebarProps) => {
+const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = false, onToggleCollapse, isMobile = false }: ProjectSidebarProps) => {
   const [expandedSections, setExpandedSections] = useState({
     projects: true,
     templates: false
@@ -71,138 +72,150 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
 
   return (
     <div 
-      className="w-64 bg-background-secondary border-r border-border h-screen flex flex-col relative"
+      className={`${isMobile ? 'w-full' : 'w-64'} bg-background-secondary border-r border-border h-screen flex flex-col relative sticky top-0`}
       style={{
         background: 'linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--background-secondary)) 100%)'
       }}
     >
-      {/* Close button for collapsed state */}
-      {!collapsed && onToggleCollapse && (
+      {/* Close button for mobile */}
+      {isMobile && onToggleCollapse && (
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 right-4 z-10"
+          className="absolute top-4 right-4 z-10 hover:bg-primary/20 hover:text-foreground"
         >
           <X className="w-4 h-4" />
         </Button>
       )}
+
+      {/* Collapse button for desktop */}
+      {!isMobile && onToggleCollapse && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleCollapse}
+          className="absolute top-4 right-4 z-10 hover:bg-primary/20 hover:text-foreground"
+        >
+          <Menu className="w-4 h-4" />
+        </Button>
+      )}
       
       {/* Header */}
-      <div className="p-6 border-b border-border">
+      <div className="p-4 sm:p-6 border-b border-border">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
             <Briefcase className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <h1 className="font-semibold text-foreground">ProjectFlow</h1>
-            <p className="text-xs text-muted-foreground">Management Suite</p>
+          <div className="min-w-0 flex-1">
+            <h1 className="font-semibold text-foreground text-sm sm:text-base truncate">ProjectFlow</h1>
+            <p className="text-xs text-muted-foreground truncate">Management Suite</p>
           </div>
         </div>
       </div>
 
       {/* Navigation Menu */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1 sm:space-y-2">
         <nav className="space-y-1">
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'dashboard' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'dashboard' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('dashboard')}
           >
-            <LayoutDashboard className="w-4 h-4 mr-3" />
-            Dashboard
+            <LayoutDashboard className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Dashboard</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'kanban' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'kanban' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('kanban')}
           >
-            <FolderKanban className="w-4 h-4 mr-3" />
-            Kanban
+            <FolderKanban className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Kanban</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'list' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'list' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('list')}
           >
-            <List className="w-4 h-4 mr-3" />
-            Tasks
+            <List className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Tasks</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'calendar' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'calendar' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('calendar')}
           >
-            <Calendar className="w-4 h-4 mr-3" />
-            Calendar
+            <Calendar className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Calendar</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'templates' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'templates' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('templates')}
           >
-            <Filter className="w-4 h-4 mr-3" />
-            Templates
+            <Filter className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Templates</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'analytics' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'analytics' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('analytics')}
           >
-            <BarChart3 className="w-4 h-4 mr-3" />
-            Analytics
+            <BarChart3 className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Analytics</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'chart-config' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'chart-config' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('chart-config')}
           >
-            <TrendingUp className="w-4 h-4 mr-3" />
-            Charts
+            <TrendingUp className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Charts</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'template-comparison' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'template-comparison' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('template-comparison')}
           >
-            <GitCompare className="w-4 h-4 mr-3" />
-            Compare Templates
+            <GitCompare className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Compare</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'whiteboard' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+              activeView === 'whiteboard' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('whiteboard')}
           >
-            <MessageSquare className="w-4 h-4 mr-3" />
-            Company Board
+            <MessageSquare className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Board</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start ${
-              activeView === 'team' ? 'bg-primary-light text-primary' : 'hover:bg-secondary'
+            className={`w-full justify-start text-sm sm:text-base ${
+                activeView === 'team' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
             }`}
             onClick={() => onViewChange?.('team')}
           >
-            <Users className="w-4 h-4 mr-3" />
-            Team
+            <Users className="w-4 h-4 mr-2 sm:mr-3" />
+            <span className="truncate">Team</span>
           </Button>
         </nav>
 
@@ -210,7 +223,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         <div className="pt-4">
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-secondary"
+            className="w-full justify-between p-2 h-auto hover:bg-primary/20 hover:text-foreground"
             onClick={() => toggleSection('templates')}
           >
             <span className="text-sm font-medium text-foreground">Templates</span>
@@ -223,10 +236,10 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
                 <Button
                   key={template.id}
                   variant="ghost"
-                  className="w-full justify-start text-sm py-2 hover:bg-secondary"
+                  className="w-full justify-start text-xs sm:text-sm py-2 hover:bg-primary/20 hover:text-foreground"
                 >
-                  <div className={`w-2 h-2 rounded-full ${template.color} mr-3`} />
-                  {template.name}
+                  <div className={`w-2 h-2 rounded-full ${template.color} mr-2 sm:mr-3`} />
+                  <span className="truncate">{template.name}</span>
                 </Button>
               ))}
             </div>
@@ -235,79 +248,57 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
 
         {/* Recent Projects */}
         <div className="pt-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Recent Projects</span>
-            <Clock className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <div className="ml-2 space-y-1">
-            {projects.slice(0, 3).map((project, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="w-full justify-start text-sm py-2 h-auto hover:bg-secondary transition-all hover:scale-105"
-                onClick={() => onViewChange?.('project-overview')}
-              >
-                <div className="flex-1 text-left">
-                  <div className="font-medium text-xs">{project.name}</div>
-                  <div className="text-xs text-muted-foreground">{project.progress}% complete</div>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Active Projects */}
-        <div className="pt-4">
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-secondary"
+            className="w-full justify-between p-2 h-auto hover:bg-primary/20 hover:text-foreground"
             onClick={() => toggleSection('projects')}
           >
-            <span className="text-sm font-medium text-foreground">Active Projects</span>
+            <span className="text-sm font-medium text-foreground">Recent Projects</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.projects ? 'rotate-180' : ''}`} />
           </Button>
           
           {expandedSections.projects && (
             <div className="ml-2 mt-2 space-y-2">
               {projects.map((project, index) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  className="w-full justify-start text-sm py-3 h-auto hover:bg-secondary"
-                  onClick={() => onViewChange?.('project-overview')}
-                >
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{project.name}</div>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <div className="w-full bg-muted rounded-full h-1.5">
-                        <div 
-                          className="bg-primary h-1.5 rounded-full transition-all" 
-                          style={{ width: `${project.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-muted-foreground">{project.progress}%</span>
-                    </div>
+                <div key={index} className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-xs sm:text-sm font-medium text-foreground truncate">{project.name}</h4>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ${project.status === 'active' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}
+                    >
+                      {project.status}
+                    </Badge>
                   </div>
-                </Button>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 bg-muted rounded-full h-1.5">
+                      <div 
+                        className="bg-primary h-1.5 rounded-full transition-all" 
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground">{project.progress}%</span>
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-border">
+      {/* Bottom Actions */}
+      <div className="p-3 sm:p-4 border-t border-border">
         <Button 
-          className="w-full bg-gradient-primary hover:opacity-90 text-white"
+          className="w-full bg-gradient-primary hover:opacity-90 text-white text-sm sm:text-base"
           onClick={() => setShowNewProjectModal(true)}
         >
           <PlusCircle className="w-4 h-4 mr-2" />
-          New Project
+          <span className="truncate">New Project</span>
         </Button>
         
-        <Button variant="ghost" className="w-full justify-start mt-2 hover:bg-secondary">
-          <Settings className="w-4 h-4 mr-3" />
-          Settings
+        <Button variant="ghost" className="w-full justify-start mt-2 hover:bg-primary/20 hover:text-foreground text-sm sm:text-base">
+          <Settings className="w-4 h-4 mr-2 sm:mr-3" />
+          <span className="truncate">Settings</span>
         </Button>
       </div>
 

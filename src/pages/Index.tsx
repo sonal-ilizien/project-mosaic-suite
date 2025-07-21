@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import ProjectSidebar from "@/components/ProjectSidebar";
 import ViewSelector from "@/components/ViewSelector";
 import CompanyOnboarding from "@/components/CompanyOnboarding";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [userCompany, setUserCompany] = useState(null);
+  const [userCompany, setUserCompany] = useState<Record<string, unknown> | null>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -21,14 +24,34 @@ const Index = () => {
     }
   }, []);
 
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarCollapsed(true);
+      setMobileSidebarOpen(false);
+    } else {
+      setSidebarCollapsed(false);
+    }
+  }, [isMobile]);
+
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    if (isMobile) {
+      setMobileSidebarOpen(!mobileSidebarOpen);
+    } else {
+      setSidebarCollapsed(!sidebarCollapsed);
+    }
   };
 
-  const handleOnboardingComplete = (data: any) => {
+  const handleOnboardingComplete = (data: Record<string, unknown>) => {
     localStorage.setItem('userCompany', JSON.stringify(data));
     setUserCompany(data);
     setShowOnboarding(false);
+  };
+
+  const closeMobileSidebar = () => {
+    if (isMobile) {
+      setMobileSidebarOpen(false);
+    }
   };
 
   return (
@@ -43,32 +66,58 @@ const Index = () => {
         />
       </div>
 
-      {/* Hamburger Menu Button */}
-      {sidebarCollapsed && (
+      {/* Mobile Overlay */}
+      {isMobile && mobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`
+        transition-all duration-300 
+        ${isMobile 
+          ? `fixed inset-y-0 left-0 z-50 transform ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-80 max-w-[85vw]` 
+          : `${sidebarCollapsed ? 'w-0' : 'w-64'} overflow-hidden flex-shrink-0 sticky top-0 h-screen`
+        }
+      `}>
+        <ProjectSidebar 
+          activeView={activeView} 
+          onViewChange={(view) => {
+            setActiveView(view);
+            if (isMobile) {
+              closeMobileSidebar();
+            }
+          }}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+          isMobile={isMobile}
+        />
+      </div>
+      
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-auto">
+        <ViewSelector 
+          activeView={activeView} 
+          sidebarCollapsed={sidebarCollapsed} 
+          onToggleSidebar={toggleSidebar}
+          isMobile={isMobile}
+          mobileSidebarOpen={mobileSidebarOpen}
+        />
+      </div>
+
+      {/* Floating Expand Button for Desktop */}
+      {!isMobile && sidebarCollapsed && (
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 bg-background border border-border shadow-lg"
+          className="fixed top-4 left-4 z-30 bg-background hover:bg-primary/20 hover:text-foreground shadow-lg"
         >
           <Menu className="w-4 h-4" />
         </Button>
       )}
-      
-      {/* Sidebar */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'w-0' : 'w-64'} overflow-hidden`}>
-        <ProjectSidebar 
-          activeView={activeView} 
-          onViewChange={setActiveView}
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={toggleSidebar}
-        />
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1 relative">
-        <ViewSelector activeView={activeView} />
-      </div>
 
       {/* Company Onboarding */}
       <CompanyOnboarding
