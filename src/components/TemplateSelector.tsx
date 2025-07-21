@@ -21,7 +21,13 @@ import { Badge } from "@/components/ui/badge";
 import NewProjectModal from "./NewProjectModal";
 import { useProjects } from "../contexts/ProjectContext";
 
-const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => void }) => {
+const TemplateSelector = ({ 
+  onBrowseTemplates, 
+  onProjectCreate 
+}: { 
+  onBrowseTemplates?: () => void;
+  onProjectCreate?: (project: any) => void;
+}) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const { addProject } = useProjects();
@@ -273,24 +279,30 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
         open={showNewProjectModal}
         onOpenChange={setShowNewProjectModal}
         selectedTemplate={templates.find(t => t.id === selectedTemplate)}
-        onProjectCreate={(projectData: {name: string; template?: string; status?: string; priority?: string; lead?: string; endDate?: Date; description?: string}) => {
+        onProjectCreate={(projectData: {id: string; name: string; description: string; template: string; startDate?: Date; endDate?: Date; team: string[]; lead: string; milestones: any[]; labels: string[]; priority: string; status: string; createdAt: Date; progress: number}) => {
           // Convert the modal project data to ListView Project format
           const project = {
-            id: Date.now(),
+            id: parseInt(projectData.id), // Convert string ID to number
             name: projectData.name,
             type: projectData.template || 'General',
+            template: projectData.template || 'General', // Keep template field for ProjectOverview
             status: projectData.status || 'Planning',
             priority: projectData.priority || 'Medium',
             assignee: projectData.lead || 'Unassigned',
             dueDate: projectData.endDate ? new Date(projectData.endDate).toISOString().split('T')[0] : '',
-            progress: 0,
-            tasks: 0,
-            completedTasks: 0,
+            progress: projectData.progress || 0,
+            tasks: 0, // Default value for new projects
+            completedTasks: 0, // Default value for new projects
             description: projectData.description || ''
           };
           
           addProject(project);
           setShowNewProjectModal(false);
+          
+          // Call the redirect callback if provided
+          if (onProjectCreate) {
+            onProjectCreate(project);
+          }
         }}
       />
     </div>

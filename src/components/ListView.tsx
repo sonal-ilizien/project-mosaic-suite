@@ -50,9 +50,10 @@ interface ModalProject {
 
 interface ListViewProps {
   tasks?: unknown[];
+  onProjectSelect?: (project: Project) => void;
 }
 
-const ListView = ({ tasks = [] }: ListViewProps) => {
+const ListView = ({ tasks = [], onProjectSelect }: ListViewProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState('all');
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -287,7 +288,11 @@ const ListView = ({ tasks = [] }: ListViewProps) => {
             </TableHeader>
             <TableBody>
               {filteredProjects.map((project) => (
-                <TableRow key={project.id} className="hover:bg-background-secondary cursor-pointer">
+                <TableRow 
+                  key={project.id} 
+                  className="hover:bg-background-secondary cursor-pointer"
+                  onClick={() => onProjectSelect && onProjectSelect(project)}
+                >
                   <TableCell className="font-medium">{project.name}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{project.type}</Badge>
@@ -333,21 +338,34 @@ const ListView = ({ tasks = [] }: ListViewProps) => {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewProjectDetails(project)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewProjectDetails(project);
+                        }}>
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditProject(project)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditProject(project);
+                        }}>
                           Edit Project
                         </DropdownMenuItem>
                         <DropdownMenuItem>Assign Team</DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
-                          onClick={() => handleDeleteProject(project.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteProject(project.id);
+                          }}
                         >
                           Delete Project
                         </DropdownMenuItem>

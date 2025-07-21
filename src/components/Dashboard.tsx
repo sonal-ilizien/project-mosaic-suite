@@ -84,10 +84,18 @@ interface Project {
 
 // Using the Project interface defined above
 
-const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<string, unknown>) => void }) => {
+const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<string, unknown> | { type: string }) => void }) => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const { projects, addProject } = useProjects();
+  // const { projects } = useProjects();
+
+  // Calculate real stats from actual projects
+  const activeProjects = projects.filter(p => p.status !== 'Completed' && p.status !== 'Cancelled').length;
+  const completedProjects = projects.filter(p => p.status === 'Completed').length;
+  const totalTasks = projects.reduce((sum, p) => sum + p.tasks, 0);
+  const completedTasks = projects.reduce((sum, p) => sum + p.completedTasks, 0);
+
   const stats = [
     { 
       label: 'Active Projects', 
@@ -376,14 +384,19 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                     <p className="text-xs text-muted-foreground">Track your active projects</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-xs font-medium hover:bg-blue-50 hover:text-blue-700">
-                  View All
-                  <ArrowUpRight className="w-3 h-3 ml-1" />
-                </Button>
+                                 <Button 
+                   variant="ghost" 
+                   size="sm" 
+                   className="text-xs font-medium hover:bg-blue-50 hover:text-blue-700"
+                   onClick={() => onProjectSelect && onProjectSelect({ type: 'list' })}
+                 >
+                   View All
+                   <ArrowUpRight className="w-3 h-3 ml-1" />
+                 </Button>
               </div>
               <div className="space-y-3">
                 {recentProjects.map((project, index) => (
-                                    <div 
+                  <div 
                     key={index} 
                     className="group p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-300 cursor-pointer"
                     style={{ animationDelay: `${index * 150}ms` }}

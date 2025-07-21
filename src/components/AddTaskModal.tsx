@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { useProjects } from "../contexts/ProjectContext";
 
 // Utility function to generate initials from any name
 const generateInitials = (name: string): string => {
@@ -70,18 +71,22 @@ interface AddTaskModalProps {
   onOpenChange: (open: boolean) => void;
   onTaskCreate: (task: Task) => void;
   defaultStatus?: string;
+  defaultProject?: string; // Add default project parameter
 }
 
-const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus }: AddTaskModalProps) => {
+const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, defaultProject }: AddTaskModalProps) => {
   const [taskData, setTaskData] = useState({
     name: '',
     description: '',
     dueDate: undefined as Date | undefined,
     assignee: '',
     priority: '',
-    project: '',
+    project: defaultProject || '', // Use default project if provided
     status: defaultStatus || 'todo'
   });
+
+  // Get projects from context instead of hardcoded list
+  const { projects } = useProjects();
 
   const statusOptions = [
     { id: 'todo', name: 'To Do', color: 'bg-muted' },
@@ -90,12 +95,11 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus }: AddTa
     { id: 'done', name: 'Done', color: 'bg-success' }
   ];
 
-  const projects = [
-    { id: 'mobile-app', name: 'Mobile App Redesign' },
-    { id: 'budget-planning', name: 'Q1 Budget Planning' },
-    { id: 'website-migration', name: 'Website Migration' },
-    { id: 'api-integration', name: 'API Integration' }
-  ];
+  // Use dynamic projects from context
+  const projectOptions = projects.map(project => ({
+    id: project.id.toString(),
+    name: project.name
+  }));
 
   const teamMembers = [
     { id: 'john', name: 'John Smith' },
@@ -130,7 +134,7 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus }: AddTa
     const assigneeName = selectedAssignee ? selectedAssignee.name : 'Unassigned';
 
     // Get project name from the selected project ID
-    const selectedProject = projects.find(project => project.id === taskData.project);
+    const selectedProject = projects.find(project => project.id.toString() === taskData.project);
     const projectName = selectedProject ? selectedProject.name : 'Unknown Project';
 
     // Create task with the correct structure expected by KanbanBoard
@@ -169,7 +173,7 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus }: AddTa
       dueDate: undefined,
       assignee: '',
       priority: '',
-      project: '',
+      project: defaultProject || '',
       status: 'todo'
     });
   };
@@ -228,7 +232,7 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus }: AddTa
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {projects.map((project) => (
+                  {projectOptions.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>

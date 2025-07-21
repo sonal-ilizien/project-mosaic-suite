@@ -61,7 +61,7 @@ const ViewSelector = ({
   const [selectedProject, setSelectedProject] = useState<Record<string, unknown> | null>(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Record<string, unknown> | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<{id: string; name: string; description?: string} | null>(null);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [tasks, setTasks] = useState<unknown[]>([]);
 
@@ -74,12 +74,12 @@ const ViewSelector = ({
     { id: 'analytics', name: 'Analytics', icon: BarChart3, description: 'Charts & Reports' }
   ];
 
-  const handleProjectCreate = (project: Record<string, unknown>) => {
+  const handleProjectCreate = (project: any) => {
     setSelectedProject(project);
     setActiveView('project-overview');
   };
 
-  const handleTemplateSelect = (template: Record<string, unknown>) => {
+  const handleTemplateSelect = (template: any) => {
     setSelectedTemplate(template);
     setShowNewProjectModal(true);
   };
@@ -88,23 +88,40 @@ const ViewSelector = ({
     setShowTemplateGallery(true);
   };
 
-  const handleTaskCreate = (task: Record<string, unknown>) => {
+  const handleTaskCreate = (task: any) => {
     setTasks(prev => [...prev, task]);
   };
 
   const renderActiveView = () => {
     switch (activeView) {
-      case 'dashboard':
-        return <Dashboard onProjectSelect={(project) => {
-          setSelectedProject(project);
-          setActiveView('project-overview');
-        }} />;
+              case 'dashboard':
+          return <Dashboard onProjectSelect={(project) => {
+            // Check if this is a navigation request (like "View All")
+            if (project && typeof project === 'object' && 'type' in project) {
+              if (project.type === 'list') {
+                setActiveView('list');
+                return;
+              } else if (project.type === 'templates') {
+                setActiveView('templates');
+                return;
+              }
+            }
+            // Otherwise, treat as project selection for overview
+            setSelectedProject(project as Record<string, unknown>);
+            setActiveView('project-overview');
+          }} />;
       case 'kanban':
         return <KanbanBoard />;
       case 'templates':
-        return <TemplateSelector onBrowseTemplates={handleBrowseTemplates} />;
+        return <TemplateSelector 
+          onBrowseTemplates={handleBrowseTemplates} 
+          onProjectCreate={handleProjectCreate}
+        />;
       case 'list':
-        return <ListView />;
+        return <ListView onProjectSelect={(project) => {
+          setSelectedProject(project as unknown as Record<string, unknown>);
+          setActiveView('project-overview');
+        }} />;
       case 'calendar':
         return <CalendarView />;
       case 'analytics':
