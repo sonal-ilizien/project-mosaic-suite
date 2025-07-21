@@ -249,10 +249,10 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-none w-[99vw] max-h-[85vh] overflow-hidden p-0">
-        <div className="flex h-full">
+      <DialogContent className="max-w-8xl w-[98vw] max-h-[98vh] overflow-hidden p-0 rounded-none animate-in fade-in-0 zoom-in-95 duration-500">
+        <div className="flex h-full max-h-[95vh]">
           {/* Left Side - Project Form */}
-          <div className="w-[75%] p-6 overflow-y-auto">
+          <div className="w-[70%] overflow-y-auto p-6 min-w-0">
             <DialogHeader className="mb-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -702,7 +702,7 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
           </div>
 
           {/* Right Side - Template Info */}
-          <div className="w-[25%] bg-gradient-to-br from-gray-50 to-gray-100 border-l border-gray-200 p-6 overflow-y-auto">
+          <div className="w-[30%] border-l border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex flex-col min-w-0 h-full">
             <div className="space-y-4">
               {/* Template Header */}
               <div className="text-center mb-4">

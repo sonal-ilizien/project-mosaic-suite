@@ -57,33 +57,7 @@ const generateInitials = (name: string): string => {
 };
 
 const SharedWhiteboard = () => {
-  // Add custom CSS animations
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInFromRight {
-        0% { transform: translateX(8px) scale(1); opacity: 0.9; }
-        50% { transform: translateX(0px) scale(0.98); opacity: 1; }
-        100% { transform: translateX(8px) scale(1); opacity: 0.9; }
-      }
-      @keyframes slideInFromLeft {
-        0% { transform: translateX(-8px) scale(1); opacity: 0.9; }
-        50% { transform: translateX(0px) scale(0.98); opacity: 1; }
-        100% { transform: translateX(-8px) scale(1); opacity: 0.9; }
-      }
-      @keyframes gentleBounce {
-        0% { transform: translateY(0px) scale(1); }
-        50% { transform: translateY(-8px) scale(0.98); }
-        100% { transform: translateY(0px) scale(1); }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
-      }
-    };
-  }, []);
+  // Removed continuous animations
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -1167,16 +1141,8 @@ const SharedWhiteboard = () => {
                 {/* Description */}
                 <div className="mb-5 animate-in zoom-in-50 duration-1000 delay-1500">
                   <div className="bg-gradient-to-r from-slate-100 to-slate-200 p-6 rounded-xl border border-slate-300/50 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200">
-                    <p className="text-slate-800 leading-relaxed text-base break-words animate-in fade-in-0 duration-1000 delay-2000">
-                      {selectedItem.description.split(' ').map((word, index) => (
-                        <span 
-                          key={index} 
-                          className="inline-block animate-in fade-in-0 slide-in-from-bottom-2 duration-500"
-                          style={{ animationDelay: `${2000 + (index * 50)}ms` }}
-                        >
-                          {word}&nbsp;
-                        </span>
-                      ))}
+                    <p className="text-slate-800 leading-relaxed text-base break-words">
+                      {selectedItem.description}
                     </p>
                   </div>
                 </div>
@@ -1398,9 +1364,9 @@ const SharedWhiteboard = () => {
                   {/* First Row: Status and Assignee */}
                   <div className="grid grid-cols-2 gap-4 animate-in zoom-in-50 duration-800 delay-3000">
                   {/* Status */}
-                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 relative z-10" style={{ animation: 'gentleBounce 4s ease-in-out infinite', animationDelay: '0s' }}>
+                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 relative z-10">
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" style={{ animation: 'ping 4s ease-in-out infinite' }}></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
                         Status
                       </h4>
                     <div className="relative" ref={statusDropdownRef}>
@@ -1468,14 +1434,14 @@ const SharedWhiteboard = () => {
                   </div>
 
                   {/* Assignee */}
-                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowAssigneeModal(true)} style={{ animation: 'gentleBounce 4s ease-in-out infinite', animationDelay: '0s' }}>
+                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowAssigneeModal(true)}>
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2 text-slate-500" style={{ animation: 'pulse 3s ease-in-out infinite' }} />
+                        <User className="w-4 h-4 mr-2 text-slate-500" />
                         Assignee
                       </h4>
                                               <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200">
                           <Avatar className="w-8 h-8 ring-2 ring-white shadow-sm hover:scale-110 transition-transform duration-200">
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-xs animate-pulse">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-xs">
                               {generateInitials(selectedAssignee || selectedItem.assignee)}
                             </AvatarFallback>
                       </Avatar>
@@ -1493,9 +1459,9 @@ const SharedWhiteboard = () => {
                   {/* Second Row: Labels and Reporter */}
                   <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-4 duration-800 delay-3500">
                   {/* Labels */}
-                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowLabelsModal(true)} style={{ animation: 'gentleBounce 4s ease-in-out infinite', animationDelay: '0s' }}>
+                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowLabelsModal(true)}>
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
-                        <Tag className="w-4 h-4 mr-2 text-slate-500" style={{ animation: 'spin 6s linear infinite' }} />
+                        <Tag className="w-4 h-4 mr-2 text-slate-500" />
                         Labels
                       </h4>
                       <div className="text-slate-500 text-sm italic">
@@ -1515,14 +1481,14 @@ const SharedWhiteboard = () => {
                   </div>
 
                   {/* Reporter */}
-                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowReporterModal(true)} style={{ animation: 'gentleBounce 4s ease-in-out infinite', animationDelay: '0s' }}>
+                    <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowReporterModal(true)}>
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
-                        <User className="w-4 h-4 mr-2 text-slate-500" style={{ animation: 'pulse 3s ease-in-out infinite' }} />
+                        <User className="w-4 h-4 mr-2 text-slate-500" />
                         Reporter
                       </h4>
                                               <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200">
                           <Avatar className="w-8 h-8 ring-2 ring-white shadow-sm hover:scale-110 transition-transform duration-200">
-                            <AvatarFallback className="bg-gradient-to-br from-green-500 to-green-600 text-white font-semibold text-xs animate-pulse">
+                            <AvatarFallback className="bg-gradient-to-br from-green-500 to-green-600 text-white font-semibold text-xs">
                               {generateInitials(selectedReporter || selectedItem.reporter)}
                             </AvatarFallback>
                       </Avatar>
@@ -1538,7 +1504,7 @@ const SharedWhiteboard = () => {
                   </div>
 
                   {/* Development */}
-                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 animate-in slide-in-from-left-4 duration-800 delay-4000" style={{ animation: 'slideInFromLeft 4s ease-in-out infinite', animationDelay: '0s' }}>
+                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 animate-in slide-in-from-left-4 duration-800 delay-4000">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-semibold text-slate-800 flex items-center">
                         <GitBranch className="w-4 h-4 mr-2 text-slate-500" />
@@ -1580,9 +1546,9 @@ const SharedWhiteboard = () => {
                   </div>
 
                   {/* Share and Embed */}
-                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 animate-in slide-in-from-right-4 duration-800 delay-4500" style={{ animation: 'slideInFromRight 4s ease-in-out infinite', animationDelay: '0s' }}>
+                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 animate-in slide-in-from-right-4 duration-800 delay-4500">
                     <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
-                                              <Link className="w-4 h-4 mr-2 text-slate-500" style={{ animation: 'pulse 3s ease-in-out infinite' }} />
+                                              <Link className="w-4 h-4 mr-2 text-slate-500" />
                       Share and Embed
                     </h4>
                     <Button 

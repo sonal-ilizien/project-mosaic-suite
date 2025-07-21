@@ -160,7 +160,7 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto overflow-y-auto h-full force-scrollbar">
       {/* Header */}
       <div className="text-center mb-10">
         <div className="flex items-center justify-between mb-4">
@@ -197,7 +197,7 @@ const TemplateSelector = ({ onBrowseTemplates }: { onBrowseTemplates?: () => voi
           >
             {/* Create Project Button - Only show on selected template */}
             {selectedTemplate === template.id && (
-              <div className="absolute bottom-4 right-4 z-10">
+              <div className="absolute bottom-4 right-4 z-1">
                 <Button 
                   size="sm"
                   className="bg-gradient-primary hover:opacity-90 text-white shadow-lg"

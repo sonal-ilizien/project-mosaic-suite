@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import NewProjectModal from "./NewProjectModal";
+import { useProjects } from "../contexts/ProjectContext";
 
 interface ProjectSidebarProps {
   activeView?: string;
@@ -43,6 +44,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
     templates: false
   });
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const { projects, addProject } = useProjects();
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -64,17 +66,13 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
     { id: 'product', name: 'Product Launch Roadmaps', icon: Rocket, color: 'bg-cyan-500' }
   ];
 
-  const projects = [
-    { name: 'Mobile App Redesign', progress: 75, status: 'active' },
-    { name: 'Q1 Budget Planning', progress: 40, status: 'active' },
-    { name: 'Website Migration', progress: 90, status: 'review' }
-  ];
+  // Using projects from context instead of local array
 
   return (
     <div 
       className={`${isMobile ? 'w-full' : 'w-64'} bg-background-secondary border-r border-border h-screen flex flex-col relative sticky top-0`}
       style={{
-        background: 'linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--background-secondary)) 100%)'
+        background: '#5F9EA0'
       }}
     >
       {/* Close button for mobile */}
@@ -83,7 +81,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 right-4 z-10 hover:bg-primary/20 hover:text-foreground"
+          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -95,32 +93,32 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 right-4 z-10 hover:bg-primary/20 hover:text-foreground"
+          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
         >
           <Menu className="w-4 h-4" />
         </Button>
       )}
       
       {/* Header */}
-      <div className="p-4 sm:p-6 border-b border-border">
+      <div className="p-4 sm:p-6 border-b border-white/20" style={{ background: '#5F9EA0' }}>
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
             <Briefcase className="w-4 h-4 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="font-semibold text-foreground text-sm sm:text-base truncate">ProjectFlow</h1>
-            <p className="text-xs text-muted-foreground truncate">Management Suite</p>
+            <h1 className="font-semibold text-white text-sm sm:text-base truncate">ProjectFlow</h1>
+            <p className="text-xs text-white/70 truncate">Management Suite</p>
           </div>
         </div>
       </div>
 
       {/* Navigation Menu */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1 sm:space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1 sm:space-y-2 force-scrollbar-white">
         <nav className="space-y-1">
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'dashboard' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'dashboard' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('dashboard')}
           >
@@ -130,7 +128,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'kanban' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'kanban' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('kanban')}
           >
@@ -140,7 +138,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'list' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'list' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('list')}
           >
@@ -150,7 +148,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'calendar' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'calendar' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('calendar')}
           >
@@ -160,7 +158,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'templates' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'templates' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('templates')}
           >
@@ -170,7 +168,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'analytics' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'analytics' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('analytics')}
           >
@@ -180,7 +178,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'chart-config' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'chart-config' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('chart-config')}
           >
@@ -190,7 +188,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'template-comparison' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'template-comparison' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('template-comparison')}
           >
@@ -200,7 +198,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'whiteboard' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+              activeView === 'whiteboard' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('whiteboard')}
           >
@@ -210,7 +208,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base ${
-                activeView === 'team' ? 'bg-primary-light text-primary hover:bg-primary/90 hover:text-white' : 'hover:bg-primary/20 hover:text-foreground'
+                activeView === 'team' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
             }`}
             onClick={() => onViewChange?.('team')}
           >
@@ -223,11 +221,11 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         <div className="pt-4">
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-primary/20 hover:text-foreground"
+            className="w-full justify-between p-2 h-auto text-white/90 hover:bg-white/20 hover:text-white"
             onClick={() => toggleSection('templates')}
           >
-            <span className="text-sm font-medium text-foreground">Templates</span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.templates ? 'rotate-180' : ''}`} />
+            <span className="text-sm font-medium text-white">Templates</span>
+            <ChevronDown className={`w-4 h-4 transition-transform text-white ${expandedSections.templates ? 'rotate-180' : ''}`} />
           </Button>
           
           {expandedSections.templates && (
@@ -236,7 +234,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
                 <Button
                   key={template.id}
                   variant="ghost"
-                  className="w-full justify-start text-xs sm:text-sm py-2 hover:bg-primary/20 hover:text-foreground"
+                  className="w-full justify-start text-xs sm:text-sm py-2 text-white/80 hover:bg-white/20 hover:text-white"
                 >
                   <div className={`w-2 h-2 rounded-full ${template.color} mr-2 sm:mr-3`} />
                   <span className="truncate">{template.name}</span>
@@ -250,34 +248,45 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         <div className="pt-4">
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-primary/20 hover:text-foreground"
+            className="w-full justify-between p-2 h-auto text-white/90 hover:bg-white/20 hover:text-white"
             onClick={() => toggleSection('projects')}
           >
-            <span className="text-sm font-medium text-foreground">Recent Projects</span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.projects ? 'rotate-180' : ''}`} />
+            <span className="text-sm font-medium text-white">Recent Projects</span>
+            <ChevronDown className={`w-4 h-4 transition-transform text-white ${expandedSections.projects ? 'rotate-180' : ''}`} />
           </Button>
           
           {expandedSections.projects && (
             <div className="ml-2 mt-2 space-y-2">
-              {projects.map((project, index) => (
-                <div key={index} className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+              {projects.slice(0, 3).map((project) => (
+                <div key={project.id} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs sm:text-sm font-medium text-foreground truncate">{project.name}</h4>
+                    <h4 className="text-xs sm:text-sm font-medium text-white truncate">{project.name}</h4>
                     <Badge 
                       variant="secondary" 
-                      className={`text-xs ${project.status === 'active' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}
+                      className={`text-xs font-medium ${
+                        project.status === 'In Progress' ? 'bg-green-500 text-white' : 
+                        project.status === 'Completed' ? 'bg-blue-500 text-white' : 
+                        project.status === 'Review' ? 'bg-yellow-500 text-white' : 
+                        'bg-gray-500 text-white'
+                      }`}
                     >
                       {project.status}
                     </Badge>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-muted rounded-full h-1.5">
+                    <div className="flex-1 bg-white/20 rounded-full h-1.5">
                       <div 
-                        className="bg-primary h-1.5 rounded-full transition-all" 
+                        className={`h-1.5 rounded-full transition-all ${
+                          project.progress >= 100 ? 'bg-green-500' :
+                          project.progress >= 75 ? 'bg-blue-500' :
+                          project.progress >= 50 ? 'bg-yellow-500' :
+                          project.progress >= 25 ? 'bg-orange-500' :
+                          'bg-red-500'
+                        }`}
                         style={{ width: `${project.progress}%` }}
                       />
                     </div>
-                    <span className="text-xs text-muted-foreground">{project.progress}%</span>
+                    <span className="text-xs text-white/70">{project.progress}%</span>
                   </div>
                 </div>
               ))}
@@ -287,16 +296,16 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-3 sm:p-4 border-t border-border">
+      <div className="p-3 sm:p-4 border-t border-white/20">
         <Button 
-          className="w-full bg-gradient-primary hover:opacity-90 text-white text-sm sm:text-base"
+          className="w-full bg-white/20 hover:bg-white/30 text-white text-sm sm:text-base border border-white/30"
           onClick={() => setShowNewProjectModal(true)}
         >
           <PlusCircle className="w-4 h-4 mr-2" />
           <span className="truncate">New Project</span>
         </Button>
         
-        <Button variant="ghost" className="w-full justify-start mt-2 hover:bg-primary/20 hover:text-foreground text-sm sm:text-base">
+        <Button variant="ghost" className="w-full justify-start mt-2 text-white/90 hover:bg-white/20 hover:text-white text-sm sm:text-base">
           <Settings className="w-4 h-4 mr-2 sm:mr-3" />
           <span className="truncate">Settings</span>
         </Button>
@@ -307,7 +316,23 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         open={showNewProjectModal}
         onOpenChange={setShowNewProjectModal}
         onProjectCreate={(project) => {
-          console.log('Project created:', project);
+          // Convert modal project to context project format
+          const newProject = {
+            id: Date.now(),
+            name: project.name,
+            type: project.template || 'General',
+            status: project.status === 'backlog' ? 'Planning' : 
+                    project.status === 'in-progress' ? 'In Progress' : 
+                    project.status === 'completed' ? 'Completed' : 'Planning',
+            priority: project.priority || 'Medium',
+            assignee: project.team[0] || 'Unassigned',
+            dueDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+            progress: 0,
+            tasks: 0,
+            completedTasks: 0,
+            description: project.description
+          };
+          addProject(newProject);
           setShowNewProjectModal(false);
         }}
       />

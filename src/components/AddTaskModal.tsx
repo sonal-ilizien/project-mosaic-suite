@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, User, Flag, FolderOpen } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,69 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
+// Utility function to generate initials from any name
+const generateInitials = (name: string): string => {
+  if (!name || typeof name !== 'string') return '';
+  
+  // Split the name into parts and filter out empty strings
+  const nameParts = name.trim().split(' ').filter(part => part.length > 0);
+  
+  if (nameParts.length === 0) return '';
+  
+  if (nameParts.length === 1) {
+    // If only one name, take first two letters
+    return nameParts[0].substring(0, 2).toUpperCase();
+  }
+  
+  // Take first letter of first name and first letter of last name
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+  
+  return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+};
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  assignee: { name: string; avatar: string };
+  dueDate: string;
+  comments: number;
+  attachments: number;
+  tags: string[];
+  status: string;
+  parentId: string | null;
+  subtasks: string[];
+  attachmentsList?: Array<{
+    name: string;
+    size: string;
+    type: string;
+    url: string;
+    description: string;
+    file?: File;
+  }>;
+  commentsList?: Array<{
+    id: string;
+    author: string;
+    content: string;
+    createdAt: string;
+  }>;
+  development?: {
+    branches: number;
+    commits: number;
+    pullRequests: number;
+  };
+}
+
 interface AddTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTaskCreate: (task: any) => void;
+  onTaskCreate: (task: Task) => void;
+  defaultStatus?: string;
 }
 
-const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) => {
+const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus }: AddTaskModalProps) => {
   const [taskData, setTaskData] = useState({
     name: '',
     description: '',
@@ -24,8 +80,15 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) =
     assignee: '',
     priority: '',
     project: '',
-    status: 'todo'
+    status: defaultStatus || 'todo'
   });
+
+  const statusOptions = [
+    { id: 'todo', name: 'To Do', color: 'bg-muted' },
+    { id: 'inprogress', name: 'In Progress', color: 'bg-primary' },
+    { id: 'review', name: 'In Review', color: 'bg-warning' },
+    { id: 'done', name: 'Done', color: 'bg-success' }
+  ];
 
   const projects = [
     { id: 'mobile-app', name: 'Mobile App Redesign' },
@@ -42,20 +105,58 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) =
   ];
 
   const priorities = [
-    { id: 'low', name: 'Low', color: 'bg-muted' },
-    { id: 'medium', name: 'Medium', color: 'bg-warning' },
-    { id: 'high', name: 'High', color: 'bg-destructive' },
-    { id: 'urgent', name: 'Urgent', color: 'bg-destructive' }
+    { id: 'Low', name: 'Low', color: 'bg-muted' },
+    { id: 'Medium', name: 'Medium', color: 'bg-primary' },
+    { id: 'High', name: 'High', color: 'bg-warning' },
+    { id: 'Critical', name: 'Critical', color: 'bg-destructive' }
   ];
+
+  // Reset form when modal opens with new default status
+  useEffect(() => {
+    if (open && defaultStatus) {
+      setTaskData(prev => ({
+        ...prev,
+        status: defaultStatus
+      }));
+    }
+  }, [open, defaultStatus]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!taskData.name || !taskData.project) return;
 
+    // Get assignee name from the selected assignee ID
+    const selectedAssignee = teamMembers.find(member => member.id === taskData.assignee);
+    const assigneeName = selectedAssignee ? selectedAssignee.name : 'Unassigned';
+
+    // Get project name from the selected project ID
+    const selectedProject = projects.find(project => project.id === taskData.project);
+    const projectName = selectedProject ? selectedProject.name : 'Unknown Project';
+
+    // Create task with the correct structure expected by KanbanBoard
     const newTask = {
       id: Date.now().toString(),
-      ...taskData,
-      createdAt: new Date(),
+      title: taskData.name,
+      description: taskData.description,
+      priority: taskData.priority || 'Medium',
+      assignee: { 
+        name: assigneeName, 
+        avatar: generateInitials(assigneeName) 
+      },
+      dueDate: taskData.dueDate ? format(taskData.dueDate, 'MMM dd') : 'No due date',
+      comments: 0,
+      attachments: 0,
+      tags: [projectName], // Use project name as a tag
+      status: taskData.status,
+      parentId: null,
+      subtasks: [],
+      attachmentsList: [],
+      commentsList: [],
+      development: {
+        branches: 0,
+        commits: 0,
+        pullRequests: 0
+      }
     };
 
     onTaskCreate(newTask);
@@ -75,7 +176,7 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-6xl w-[95vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <FolderOpen className="w-5 h-5 text-primary" />
@@ -84,8 +185,8 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) =
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
               <Label htmlFor="taskName">Task Name *</Label>
               <Input
                 id="taskName"
@@ -94,6 +195,26 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) =
                 placeholder="Enter task name"
                 required
               />
+            </div>
+
+            <div>
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {taskData.dueDate ? format(taskData.dueDate, "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={taskData.dueDate}
+                    onSelect={(date) => setTaskData(prev => ({ ...prev, dueDate: date }))}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
@@ -158,23 +279,25 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate }: AddTaskModalProps) =
             </div>
 
             <div>
-              <Label>Due Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {taskData.dueDate ? format(taskData.dueDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={taskData.dueDate}
-                    onSelect={(date) => setTaskData(prev => ({ ...prev, dueDate: date }))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="status">Status (Column)</Label>
+              <Select
+                value={taskData.status}
+                onValueChange={(value) => setTaskData(prev => ({ ...prev, status: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status.id} value={status.id}>
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                        <span>{status.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="col-span-2">

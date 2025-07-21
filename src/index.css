@@ -189,6 +189,54 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground;
   }
+
+  /* Force scrollbar visibility for specific elements */
+  .force-scrollbar {
+    overflow-y: auto !important;
+  }
+
+  .force-scrollbar::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important;
+  }
+
+  .force-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 4px !important;
+  }
+
+  .force-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 4px !important;
+  }
+
+  .force-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* White scrollbar for dark backgrounds */
+  .force-scrollbar-white {
+    overflow-y: auto !important;
+  }
+
+  .force-scrollbar-white::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important;
+  }
+
+  .force-scrollbar-white::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+  }
+
+  .force-scrollbar-white::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 4px !important;
+  }
+
+  .force-scrollbar-white::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+  }
 }
 
 @layer components {

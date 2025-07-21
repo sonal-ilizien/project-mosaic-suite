@@ -131,7 +131,7 @@ const ViewSelector = ({
     <TooltipProvider>
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation Bar */}
-        <div className="bg-background border-b border-border p-3 sm:p-4 flex-shrink-0 sticky top-0 z-10">
+        <div className="bg-background border-b border-border p-3 sm:p-4 flex-shrink-0 sticky top-0 z-50" style={{ background: '#5F9EA0' }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 min-w-0">
             {/* Mobile Layout - Hamburger and Search in first row, Action Buttons in second row */}
             <div className="w-full sm:hidden">
@@ -165,7 +165,7 @@ const ViewSelector = ({
                 <div className="flex items-center space-x-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" className="hover:bg-primary/20 hover:text-foreground" size="sm">
+                      <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
                         <Filter className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
@@ -176,7 +176,7 @@ const ViewSelector = ({
                   
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" className="hover:bg-primary/20 hover:text-foreground" size="sm">
+                      <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
                         <SortAsc className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
@@ -189,7 +189,7 @@ const ViewSelector = ({
                     <TooltipTrigger asChild>
                       <Button 
                         size="sm" 
-                        className="bg-gradient-primary hover:opacity-90"
+                        className="bg-white/20 text-white border-white/30 hover:bg-white/30"
                         onClick={() => setShowAddTaskModal(true)}
                       >
                         <Plus className="w-4 h-4" />
@@ -221,8 +221,8 @@ const ViewSelector = ({
                       size="sm"
                       className={`flex-shrink-0 ${
                         activeView === view.id 
-                          ? "bg-primary text-primary-foreground" 
-                          : "hover:bg-primary/20 hover:text-foreground"
+                          ? "bg-white/20 text-white" 
+                          : "text-white/90 hover:bg-white/20 hover:text-white"
                       }`}
                       onClick={() => setActiveView(view.id as ViewType)}
                     >
@@ -248,19 +248,19 @@ const ViewSelector = ({
                 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" className="hover:bg-primary/20 hover:text-foreground" size="sm">
+                  <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
                     <Filter className="w-4 h-4 mr-2" />
                     <span>Filter</span>
                   </Button>
                   
-                  <Button variant="outline" className="hover:bg-primary/20 hover:text-foreground" size="sm">
+                  <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
                     <SortAsc className="w-4 h-4 mr-2" />
                     <span>Sort</span>
                   </Button>
                   
                   <Button 
                     size="sm" 
-                    className="bg-gradient-primary hover:opacity-90"
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30"
                     onClick={() => setShowAddTaskModal(true)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
