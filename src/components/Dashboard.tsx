@@ -103,8 +103,8 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
       change: '+2', 
       icon: TrendingUp, 
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      iconBg: 'bg-blue-100',
+      bgColor: 'bg-blue-500',
+      iconBg: 'bg-blue-600',
       trend: 'up'
     },
     { 
@@ -113,8 +113,8 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
       change: '+3', 
       icon: Users, 
       color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      iconBg: 'bg-indigo-100',
+      bgColor: 'bg-indigo-500',
+      iconBg: 'bg-indigo-600',
       trend: 'up'
     },
     { 
@@ -123,8 +123,8 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
       change: '-5', 
       icon: Clock, 
       color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      iconBg: 'bg-orange-100',
+      bgColor: 'bg-orange-500',
+      iconBg: 'bg-orange-600',
       trend: 'down'
     },
     { 
@@ -133,8 +133,8 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
       change: '+12', 
       icon: CheckCircle, 
       color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      iconBg: 'bg-green-100',
+      bgColor: 'bg-green-500',
+      iconBg: 'bg-green-600',
       trend: 'up'
     }
   ];
@@ -344,28 +344,28 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
               className={`p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-lg ${stat.bgColor}`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">{stat.label}</p>
-                  <p className="text-3xl font-bold text-foreground mb-3">{stat.value}</p>
-                  <div className="flex items-center">
-                    <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      stat.trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {stat.trend === 'up' ? (
-                        <ArrowUpRight className="w-3 h-3 mr-1" />
-                      ) : (
-                        <ArrowDownRight className="w-3 h-3 mr-1" />
-                      )}
-                      {stat.change}
+                              <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white mb-2">{stat.label}</p>
+                    <p className="text-3xl font-bold text-white mb-3">{stat.value}</p>
+                    <div className="flex items-center">
+                      <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        stat.trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {stat.trend === 'up' ? (
+                          <ArrowUpRight className="w-3 h-3 mr-1" />
+                        ) : (
+                          <ArrowDownRight className="w-3 h-3 mr-1" />
+                        )}
+                        {stat.change}
+                      </div>
+                      <span className="text-xs text-white/80 ml-2">this week</span>
                     </div>
-                    <span className="text-xs text-muted-foreground ml-2">this week</span>
+                  </div>
+                  <div className={`p-4 rounded-xl ${stat.iconBg} text-white flex-shrink-0 ml-4 shadow-md`}>
+                    <stat.icon className="w-6 h-6" />
                   </div>
                 </div>
-                <div className={`p-4 rounded-xl ${stat.iconBg} ${stat.color} flex-shrink-0 ml-4 shadow-md`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
             </Card>
           ))}
         </div>
@@ -373,7 +373,10 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Projects */}
           <div className="lg:col-span-2">
-                        <Card className="p-6 border-0 shadow-xl h-full" style={{ background: '#E6F3F3' }}>
+                        <Card className="p-6 border-0 shadow-xl h-full" style={{ 
+                          background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+                          border: '1px solid #BFDBFE'
+                        }}>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -456,7 +459,10 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
 
           {/* Today's Schedule */}
           <div className="h-full">
-            <Card className="p-6 border-0 shadow-xl h-full" style={{ background: '#E6F3F3' }}>
+            <Card className="p-6 border-0 shadow-xl h-full" style={{ 
+              background: 'linear-gradient(135deg, #FEF2F2 0%, #FED7D7 100%)',
+              border: '1px solid #FECACA'
+            }}>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">

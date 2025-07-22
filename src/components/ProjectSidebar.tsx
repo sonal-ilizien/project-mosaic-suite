@@ -259,13 +259,13 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
             <div className="ml-2 mt-2 space-y-2">
               {projects.slice(0, 3).map((project) => (
                 <div key={project.id} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs sm:text-sm font-medium text-white truncate">{project.name}</h4>
+                  <div className="mb-1">
+                    <h4 className="text-xs sm:text-sm font-medium text-white truncate mb-1">{project.name}</h4>
                     <Badge 
                       variant="secondary" 
                       className={`text-xs font-medium ${
-                        project.status === 'In Progress' ? 'bg-green-500 text-white' : 
-                        project.status === 'Completed' ? 'bg-blue-500 text-white' : 
+                        project.status === 'In Progress' ? 'bg-blue-500 text-white' : 
+                        project.status === 'Completed' ? 'bg-green-500 text-white' : 
                         project.status === 'Review' ? 'bg-yellow-500 text-white' : 
                         'bg-gray-500 text-white'
                       }`}
