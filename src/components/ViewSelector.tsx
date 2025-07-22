@@ -8,7 +8,8 @@ import {
   Search, 
   Plus, 
   SortAsc,
-  Menu
+  Menu,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,10 +147,19 @@ const ViewSelector = ({
 
   return (
     <TooltipProvider>
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 text-sharp">
         {/* Top Navigation Bar */}
-        <div className="bg-background border-b border-border p-3 sm:p-4 flex-shrink-0 sticky top-0 z-50" style={{ background: '#5F9EA0' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 min-w-0">
+        <div className="bg-background border-b border-border p-3 sm:p-4 flex-shrink-0 sticky top-0 z-50 relative overflow-hidden navbar-morph navbar-particles navbar-orbs navbar-no-blur">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-transparent animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-32 -translate-y-32 float-animation"></div>
+          <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-24 translate-y-24 float-animation" style={{ animationDelay: '2s' }}></div>
+          
+          {/* Additional animated elements */}
+          <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-500/20 rounded-full blur-lg animate-pulse" style={{ animationDelay: '3s' }}></div>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 min-w-0 relative z-10">
             {/* Mobile Layout - Hamburger and Search in first row, Action Buttons in second row */}
             <div className="w-full sm:hidden">
               {/* First row - Hamburger and Search */}
@@ -159,7 +169,7 @@ const ViewSelector = ({
                     variant="ghost"
                     size="sm"
                     onClick={onToggleSidebar}
-                    className="hover:bg-primary/20 hover:text-foreground flex-shrink-0"
+                    className="hover:bg-primary/20 hover:text-foreground flex-shrink-0 ripple-effect icon-animated text-foreground"
                   >
                     <Menu className="w-4 h-4" />
                   </Button>
@@ -172,54 +182,45 @@ const ViewSelector = ({
                     placeholder="Search projects, tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-full"
+                    className="pl-9 w-full glow-border bg-background text-foreground"
                   />
                 </div>
               </div>
               
               {/* Second row - Action Buttons in right corner */}
-              <div className="flex justify-end">
-                <div className="flex items-center space-x-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
-                        <Filter className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Filter</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
-                        <SortAsc className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Sort</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="sm" 
-                        className="bg-white/20 text-white border-white/30 hover:bg-white/30"
-                        onClick={() => setShowAddTaskModal(true)}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add Task</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+              <div className="flex items-center justify-end space-x-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-border text-foreground hover:bg-accent hover:text-accent-foreground ripple-effect magnetic-hover"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Quick Actions</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-border text-foreground hover:bg-accent hover:text-accent-foreground ripple-effect magnetic-hover"
+                    >
+                      <Filter className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Filter Options</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
-            
+
             {/* Desktop Layout */}
             <div className="hidden sm:flex items-center justify-between w-full">
               {/* Left side with view tabs */}
@@ -236,15 +237,15 @@ const ViewSelector = ({
                       key={view.id}
                       variant={activeView === view.id ? "default" : "ghost"}
                       size="sm"
-                      className={`flex-shrink-0 ${
+                      className={`flex-shrink-0 transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
                         activeView === view.id 
-                          ? "bg-white/20 text-white" 
-                          : "text-white/90 hover:bg-white/20 hover:text-white"
+                          ? "bg-primary text-primary-foreground shadow-xl border border-primary/40 font-medium wave-active glow-border" 
+                          : "text-foreground hover:bg-accent hover:text-accent-foreground border border-transparent"
                       }`}
                       onClick={() => setActiveView(view.id as ViewType)}
                     >
-                      <view.icon className="w-4 h-4 mr-2" />
-                      <span>{view.name}</span>
+                      <view.icon className="w-4 h-4 mr-2 transition-transform group-hover:scale-110 icon-animated" />
+                      <span className="font-medium">{view.name}</span>
                     </Button>
                   ))}
                 </div>
@@ -253,60 +254,70 @@ const ViewSelector = ({
               {/* Right side - Search and Action Buttons */}
               <div className="flex items-center space-x-3">
                 {/* Search Bar */}
-                <div className="relative">
+                <div className="relative hidden md:block">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Search projects, tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-56"
+                    className="pl-9 w-64 bg-background border-border text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-primary glow-border"
                   />
                 </div>
                 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <span>Filter</span>
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-border text-foreground hover:bg-accent hover:text-accent-foreground ripple-effect magnetic-hover floating-action"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Quick Actions</p>
+                    </TooltipContent>
+                  </Tooltip>
                   
-                  <Button variant="outline" className="text-white border-white/30 hover:bg-white/20 hover:text-white bg-white/10" size="sm">
-                    <SortAsc className="w-4 h-4 mr-2" />
-                    <span>Sort</span>
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-border text-foreground hover:bg-accent hover:text-accent-foreground ripple-effect magnetic-hover"
+                      >
+                        <Filter className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Filter Options</p>
+                    </TooltipContent>
+                  </Tooltip>
                   
-                  <Button 
-                    size="sm" 
-                    className="bg-white/20 text-white border-white/30 hover:bg-white/30"
-                    onClick={() => setShowAddTaskModal(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    <span>Add Task</span>
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-border text-foreground hover:bg-accent hover:text-accent-foreground ripple-effect magnetic-hover sparkle"
+                      >
+                        <User className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>User Profile</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </div>
-              
-
           </div>
-
-          {/* View Description */}
-          {activeView !== 'dashboard' && (
-            <div className="mt-2 sm:mt-3 flex items-center space-x-2 overflow-x-auto scrollbar-hide">
-              <Badge variant="outline" className="text-xs flex-shrink-0">
-                {views.find(v => v.id === activeView)?.description}
-              </Badge>
-              {searchQuery && (
-                <Badge variant="secondary" className="text-xs flex-shrink-0">
-                  Searching: "{searchQuery}"
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto bg-background-secondary min-w-0">
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-auto">
           {renderActiveView()}
         </div>
 

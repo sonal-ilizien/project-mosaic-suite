@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useProjects } from "../contexts/ProjectContext";
+import { taskDataStore } from "../lib/taskData";
 
 // Utility function to generate initials from any name
 const generateInitials = (name: string): string => {
@@ -72,21 +73,23 @@ interface AddTaskModalProps {
   onTaskCreate: (task: Task) => void;
   defaultStatus?: string;
   defaultProject?: string; // Add default project parameter
+  projectId?: number; // Add project ID for direct integration
 }
 
-const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, defaultProject }: AddTaskModalProps) => {
+const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, defaultProject, projectId }: AddTaskModalProps) => {
   const [taskData, setTaskData] = useState({
     name: '',
     description: '',
     dueDate: undefined as Date | undefined,
     assignee: '',
     priority: '',
-    project: defaultProject || '', // Use default project if provided
+    project: defaultProject || '',
     status: defaultStatus || 'todo'
   });
 
   // Get projects from context instead of hardcoded list
-  const { projects } = useProjects();
+  const { projects, addTaskToProject } = useProjects();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const statusOptions = [
     { id: 'todo', name: 'To Do', color: 'bg-muted' },
@@ -127,7 +130,9 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, default
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!taskData.name || !taskData.project) return;
+    if (!taskData.name || !taskData.project || isSubmitting) return;
+
+    setIsSubmitting(true);
 
     // Get assignee name from the selected assignee ID
     const selectedAssignee = teamMembers.find(member => member.id === taskData.assignee);
@@ -150,7 +155,7 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, default
       dueDate: taskData.dueDate ? format(taskData.dueDate, 'MMM dd') : 'No due date',
       comments: 0,
       attachments: 0,
-      tags: [projectName], // Use project name as a tag
+      tags: [projectName, projectId?.toString() || ''], // Include both project name and ID
       status: taskData.status,
       parentId: null,
       subtasks: [],
@@ -163,6 +168,18 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, default
       }
     };
 
+    // If we have a specific projectId, add the task directly to that project
+    if (projectId && selectedProject) {
+      console.log('AddTaskModal: Adding task to project:', projectId, 'Project:', selectedProject.name);
+      addTaskToProject(projectId, newTask);
+    } else {
+      console.log('AddTaskModal: No projectId or selectedProject:', projectId, selectedProject);
+    }
+
+    // Also add to the task data store for Kanban board integration
+    taskDataStore.addTask(newTask);
+
+    // Also call the original onTaskCreate callback for backward compatibility
     onTaskCreate(newTask);
     onOpenChange(false);
     
@@ -176,6 +193,11 @@ const AddTaskModal = ({ open, onOpenChange, onTaskCreate, defaultStatus, default
       project: defaultProject || '',
       status: 'todo'
     });
+
+    // Reset submission state after a short delay
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1000);
   };
 
   return (

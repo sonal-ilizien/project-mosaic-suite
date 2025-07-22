@@ -1,24 +1,17 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-interface Project {
-  id: number;
-  name: string;
-  type: string;
-  status: string;
-  priority: string;
-  assignee: string;
-  dueDate: string;
-  progress: number;
-  tasks: number;
-  completedTasks: number;
-  description?: string;
-}
+import { Project, projectDataStore } from '../lib/projectData';
 
 interface ProjectContextType {
   projects: Project[];
   addProject: (project: Project) => void;
   updateProject: (project: Project) => void;
   deleteProject: (projectId: number) => void;
+  clearProjects: () => void;
+  resetToDefaults: () => void;
+  addTaskToProject: (projectId: number, task: any) => void;
+  updateTaskInProject: (projectId: number, taskId: string, updatedTask: any) => void;
+  deleteTaskFromProject: (projectId: number, taskId: string) => void;
+  getProjectTasks: (projectId: number) => any[];
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -36,86 +29,53 @@ interface ProjectProviderProps {
 }
 
 export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) => {
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: 1,
-      name: 'Mobile App Redesign',
-      type: 'Design',
-      status: 'In Progress',
-      priority: 'High',
-      assignee: 'John Doe',
-      dueDate: '2024-01-15',
-      progress: 75,
-      tasks: 12,
-      completedTasks: 9,
-      description: 'Redesign the mobile application with modern UI/UX principles and improved user experience.'
-    },
-    {
-      id: 2,
-      name: 'Q1 Budget Planning',
-      type: 'Finance',
-      status: 'Review',
-      priority: 'Medium',
-      assignee: 'Jane Smith',
-      dueDate: '2024-01-20',
-      progress: 40,
-      tasks: 8,
-      completedTasks: 3,
-      description: 'Plan and allocate budget for Q1 2024 including all departments and projects.'
-    },
-    {
-      id: 3,
-      name: 'Website Migration',
-      type: 'Development',
-      status: 'Completed',
-      priority: 'High',
-      assignee: 'Mike Johnson',
-      dueDate: '2024-01-10',
-      progress: 100,
-      tasks: 15,
-      completedTasks: 15,
-      description: 'Migrate the existing website to a new platform with improved performance and security.'
-    },
-    {
-      id: 4,
-      name: 'Team Onboarding',
-      type: 'HR',
-      status: 'Planning',
-      priority: 'Low',
-      assignee: 'Sarah Wilson',
-      dueDate: '2024-02-01',
-      progress: 20,
-      tasks: 6,
-      completedTasks: 1,
-      description: 'Onboard new team members with comprehensive training and orientation programs.'
-    },
-    {
-      id: 5,
-      name: 'Product Launch',
-      type: 'Marketing',
-      status: 'In Progress',
-      priority: 'High',
-      assignee: 'David Brown',
-      dueDate: '2024-01-25',
-      progress: 60,
-      tasks: 20,
-      completedTasks: 12,
-      description: 'Launch the new product with comprehensive marketing campaign and customer outreach.'
-    }
-  ]);
+  const [projects, setProjects] = useState<Project[]>(() => projectDataStore.getProjects());
 
   const addProject = (project: Project) => {
-    setProjects(prev => [...prev, project]);
+    projectDataStore.addProject(project);
+    setProjects(projectDataStore.getProjects());
   };
 
   const updateProject = (updatedProject: Project) => {
-    setProjects(prev => prev.map(project => 
-      project.id === updatedProject.id ? updatedProject : project
-    ));
+    projectDataStore.updateProject(updatedProject);
+    setProjects(projectDataStore.getProjects());
   };
 
   const deleteProject = (projectId: number) => {
-    setProjects(prev => prev.filter(project => project.id !== projectId));
+    projectDataStore.deleteProject(projectId);
+    setProjects(projectDataStore.getProjects());
+  };
+
+  const clearProjects = () => {
+    projectDataStore.clearProjects();
+    setProjects(projectDataStore.getProjects());
+  };
+
+  const resetToDefaults = () => {
+    projectDataStore.resetToDefaults();
+    setProjects(projectDataStore.getProjects());
+  };
+
+  const addTaskToProject = (projectId: number, task: any) => {
+    console.log('Adding task to project:', projectId, task);
+    projectDataStore.addTaskToProject(projectId, task);
+    const updatedProjects = projectDataStore.getProjects();
+    console.log('Updated projects after adding task:', updatedProjects);
+    setProjects(updatedProjects);
+  };
+
+  const updateTaskInProject = (projectId: number, taskId: string, updatedTask: any) => {
+    projectDataStore.updateTaskInProject(projectId, taskId, updatedTask);
+    setProjects(projectDataStore.getProjects());
+  };
+
+  const deleteTaskFromProject = (projectId: number, taskId: string) => {
+    projectDataStore.deleteTaskFromProject(projectId, taskId);
+    setProjects(projectDataStore.getProjects());
+  };
+
+  const getProjectTasks = (projectId: number) => {
+    return projectDataStore.getProjectTasks(projectId);
   };
 
   const value: ProjectContextType = {
@@ -123,6 +83,12 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     addProject,
     updateProject,
     deleteProject,
+    clearProjects,
+    resetToDefaults,
+    addTaskToProject,
+    updateTaskInProject,
+    deleteTaskFromProject,
+    getProjectTasks,
   };
 
   return (

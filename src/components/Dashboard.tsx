@@ -99,12 +99,12 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
   const stats = [
     { 
       label: 'Active Projects', 
-      value: '12', 
+      value: activeProjects.toString(), 
       change: '+2', 
       icon: TrendingUp, 
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      iconBg: 'bg-blue-100',
+      color: 'text-cyan-400',
+      bgColor: 'bg-cyan-500/10',
+      iconBg: 'bg-cyan-500/20',
       trend: 'up'
     },
     { 
@@ -112,71 +112,56 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
       value: '24', 
       change: '+3', 
       icon: Users, 
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      iconBg: 'bg-indigo-100',
+      color: 'text-indigo-400',
+      bgColor: 'bg-indigo-500/10',
+      iconBg: 'bg-indigo-500/20',
       trend: 'up'
     },
     { 
       label: 'Pending Tasks', 
-      value: '47', 
+      value: (totalTasks - completedTasks).toString(), 
       change: '-5', 
       icon: Clock, 
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      iconBg: 'bg-orange-100',
+      color: 'text-orange-400',
+      bgColor: 'bg-orange-500/10',
+      iconBg: 'bg-orange-500/20',
       trend: 'down'
     },
     { 
       label: 'Completed', 
-      value: '128', 
+      value: completedTasks.toString(), 
       change: '+12', 
       icon: CheckCircle, 
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      iconBg: 'bg-green-100',
+      color: 'text-emerald-400',
+      bgColor: 'bg-emerald-500/10',
+      iconBg: 'bg-emerald-500/20',
       trend: 'up'
     }
   ];
 
-  const recentProjects = [
-    { 
-      name: 'Mobile App Redesign', 
-      progress: 75, 
-      status: 'In Progress', 
-      priority: 'High', 
-      dueDate: '2 days',
-      team: ['SC', 'MJ', 'AK'],
-      color: 'from-blue-500 to-blue-600'
-    },
-    { 
-      name: 'Financial Dashboard', 
-      progress: 90, 
-      status: 'Review', 
-      priority: 'Medium', 
-      dueDate: '1 week',
-      team: ['JS', 'ED'],
-      color: 'from-indigo-500 to-indigo-600'
-    },
-    { 
-      name: 'API Integration', 
-      progress: 45, 
-      status: 'Development', 
-      priority: 'High', 
-      dueDate: '3 days',
-      team: ['MC', 'AR'],
-      color: 'from-orange-500 to-orange-600'
-    },
-    { 
-      name: 'User Documentation', 
-      progress: 20, 
-      status: 'Planning', 
-      priority: 'Low', 
-      dueDate: '2 weeks',
-      team: ['SJ'],
-      color: 'from-green-500 to-green-600'
-    }
-  ];
+  // Get recent projects from actual data (show last 4)
+  const recentProjects = projects
+    .slice(0, 4)
+    .map((project, index) => {
+      const gradientColors = [
+        'from-cyan-500 to-blue-600',
+        'from-indigo-500 to-purple-600', 
+        'from-orange-500 to-red-600',
+        'from-emerald-500 to-green-600',
+        'from-pink-500 to-rose-600',
+        'from-violet-500 to-purple-600'
+      ];
+      
+      return {
+        name: project.name,
+        progress: project.progress,
+        status: project.status,
+        priority: project.priority,
+        dueDate: project.dueDate ? `Due ${project.dueDate}` : 'No due date',
+        team: [project.assignee.substring(0,2).toUpperCase()],
+        color: gradientColors[index % gradientColors.length]
+      };
+    });
 
   const upcomingTasks = [
     { 
@@ -215,20 +200,23 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-700 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'Low': return 'bg-green-100 text-green-700 border-green-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'High': return 'bg-red-500 text-white';
+      case 'Medium': return 'bg-orange-500 text-white';
+      case 'Low': return 'bg-emerald-500 text-white';
+      case 'Urgent': return 'bg-red-600 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'In Progress': return 'bg-blue-100 text-blue-700';
-      case 'Review': return 'bg-yellow-100 text-yellow-700';
-      case 'Development': return 'bg-indigo-100 text-indigo-700';
-      case 'Planning': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'Completed': return 'bg-emerald-500 text-white';
+      case 'In Progress': return 'bg-cyan-500 text-white';
+      case 'Review': return 'bg-orange-500 text-white';
+      case 'Planning': return 'bg-indigo-500 text-white';
+      case 'On Hold': return 'bg-yellow-500 text-white';
+      case 'Cancelled': return 'bg-red-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
@@ -324,7 +312,10 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="lg" className="h-12 px-6 border-2 hover:border-green-300 hover:bg-green-50 hover:text-black transition-all duration-200">
+                <Button 
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg"
+                  onClick={() => onProjectSelect && onProjectSelect({ type: 'templates' })}
+                >
                   <LayoutTemplate className="w-5 h-5 mr-3" />
                   <span className="font-medium">Templates</span>
                 </Button>
@@ -387,7 +378,7 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                                  <Button 
                    variant="ghost" 
                    size="sm" 
-                   className="text-xs font-medium hover:bg-blue-50 hover:text-blue-700"
+                   className="text-xs font-medium hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors"
                    onClick={() => onProjectSelect && onProjectSelect({ type: 'list' })}
                  >
                    View All
@@ -398,7 +389,8 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                 {recentProjects.map((project, index) => (
                   <div 
                     key={index} 
-                    className="group p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-300 cursor-pointer"
+                    className="group p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-cyan-200 dark:hover:border-cyan-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    onClick={() => onProjectSelect && onProjectSelect(project)}
                     style={{ animationDelay: `${index * 150}ms` }}
                   >
                     <div className="flex items-start justify-between mb-3">

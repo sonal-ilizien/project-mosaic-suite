@@ -41,6 +41,7 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import AddTaskModal from "./AddTaskModal";
+import { taskDataStore, Task, KanbanColumn } from "../lib/taskData";
 
 // Utility function to generate initials from any name
 const generateInitials = (name: string): string => {
@@ -63,174 +64,128 @@ const generateInitials = (name: string): string => {
   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
 };
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  priority: string;
-  assignee: { name: string; avatar: string };
-  dueDate: string;
-  comments: number;
-  attachments: number;
-  tags: string[];
-  status: string;
-  parentId: string | null;
-  subtasks: string[];
-  attachmentsList?: Array<{
-    name: string;
-    size: string;
-    type: string;
-    url: string;
-    description: string;
-    file?: File;
-  }>;
-  commentsList?: Array<{
-    id: string;
-    author: string;
-    content: string;
-    createdAt: string;
-  }>;
-  development?: {
-    branches: number;
-    commits: number;
-    pullRequests: number;
-  };
-}
-
 interface KanbanBoardProps {
   tasks?: Task[];
+  projectId?: number; // Add projectId prop to filter tasks by project
 }
 
-const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
-  // Add custom CSS animations for card entrance
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes cardSlideIn {
-        0% {
-          opacity: 0;
-          transform: translateY(-15px) scale(0.98);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-      
-      .card-animate-in {
-        animation: cardSlideIn 0.8s ease-out forwards;
-        opacity: 1 !important;
-      }
-      
-      .card-top-highlight {
-        border: 2px solid #1e40af !important;
-        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3) !important;
-        transform: translateY(-2px);
-        transition: all 0.2s ease-in-out;
-      }
-      
-      .card-top-highlight:hover {
-        box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4) !important;
-        transform: translateY(-3px);
-      }
-      
-      .card-hover-highlight {
-        border: 2px solid #1e40af !important;
-        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3) !important;
-        transform: translateY(-2px);
-        transition: all 0.2s ease-in-out;
-      }
-      
-      .card-hover-highlight:hover {
-        box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4) !important;
-        transform: translateY(-3px);
-      }
-      
-      .card-sequential-highlight {
-        border: 2px solid #1e40af !important;
-        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3) !important;
-        transform: translateY(-2px);
-        transition: all 0.3s ease-in-out;
-        animation: pulseBorder 2s ease-in-out infinite;
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-      
-      @keyframes pulseBorder {
-        0%, 100% {
-          box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-          opacity: 1;
-        }
-        50% {
-          box-shadow: 0 6px 16px rgba(30, 64, 175, 0.5);
-          opacity: 1;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
-      }
-    };
-  }, []);
-
-  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
-  const [displaySettings, setDisplaySettings] = useState({
-    viewType: 'flat', // 'flat' or 'nested'
-    showCompleted: true,
-    groupBy: 'status' // 'status', 'priority', 'assignee'
+const KanbanBoard = ({ tasks = [], projectId }: KanbanBoardProps) => {
+  const [columns, setColumns] = useState<KanbanColumn[]>(() => {
+    // Filter tasks by project if projectId is provided
+    if (projectId) {
+      const projectTasks = taskDataStore.getTasksForProject(projectId.toString());
+      return taskDataStore.getColumns().map(column => ({
+        ...column,
+        tasks: projectTasks.filter(task => task.status === column.id)
+      }));
+    }
+    return taskDataStore.getColumns();
   });
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedColumnStatus, setSelectedColumnStatus] = useState<string>('todo');
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [newComment, setNewComment] = useState('');
-  const [commentsExpanded, setCommentsExpanded] = useState(false);
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  const [showSidebarOptionsMenu, setShowSidebarOptionsMenu] = useState(false);
   const [showViewMenu, setShowViewMenu] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [showSidebarOptionsMenu, setShowSidebarOptionsMenu] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
+  const [showStatusChangeModal, setShowStatusChangeModal] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [likedTasks, setLikedTasks] = useState<Set<string>>(new Set());
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [filterAssignee, setFilterAssignee] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [sortBy, setSortBy] = useState<string>('priority');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [automationRule, setAutomationRule] = useState<string>('');
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<string>('week');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+  const [activeColumnIndex, setActiveColumnIndex] = useState<number | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [displaySettings, setDisplaySettings] = useState({
+    showSubtasks: true,
+    showAttachments: true,
+    showComments: true,
+    showDevelopment: true,
+    showTags: true,
+    showDueDate: true,
+    showPriority: true,
+    showAssignee: true,
+    showProgress: true,
+    showCompleted: true,
+    groupBy: 'status',
+    viewType: 'kanban'
+  });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadDescription, setUploadDescription] = useState('');
-  const [animationKey, setAnimationKey] = useState(0);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
   const [showLabelsModal, setShowLabelsModal] = useState(false);
+  const [commentsExpanded, setCommentsExpanded] = useState(true);
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
-  const [showReporterModal, setShowReporterModal] = useState(false);
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [selectedAssignee, setSelectedAssignee] = useState('');
-  const [selectedReporter, setSelectedReporter] = useState('');
-  const [columns, setColumns] = useState([
-    {
-      id: 'todo',
-      title: 'To Do',
-      color: 'bg-muted',
-      tasks: []
-    },
-    {
-      id: 'in-progress',
-      title: 'In Progress',
-      color: 'bg-primary',
-      tasks: []
-    },
-    {
-      id: 'review',
-      title: 'In Review',
-      color: 'bg-warning',
-      tasks: []
-    },
-    {
-      id: 'done',
-      title: 'Done',
-      color: 'bg-success',
-      tasks: []
+  const [showReporterModal, setShowReporterModal] = useState(false);
+  const [selectedReporter, setSelectedReporter] = useState<string>('');
+
+  // Update columns when task data store changes
+  useEffect(() => {
+    const updateColumns = () => {
+      if (projectId) {
+        // Filter tasks by project if projectId is provided
+        const projectTasks = taskDataStore.getTasksForProject(projectId.toString());
+        const filteredColumns = taskDataStore.getColumns().map(column => ({
+          ...column,
+          tasks: projectTasks.filter(task => task.status === column.id)
+        }));
+        setColumns(filteredColumns);
+      } else {
+        setColumns(taskDataStore.getColumns());
+      }
+    };
+
+    // Initial load
+    updateColumns();
+  }, [projectId]);
+
+  // Update columns when tasks are added (triggered by addNewTask)
+  const addNewTask = (task: Task) => {
+    // Add task to the data store
+    taskDataStore.addTask(task);
+    
+    // Update local columns state immediately with project filtering
+    if (projectId) {
+      const projectTasks = taskDataStore.getTasksForProject(projectId.toString());
+      const filteredColumns = taskDataStore.getColumns().map(column => ({
+        ...column,
+        tasks: projectTasks.filter(task => task.status === column.id)
+      }));
+      setColumns(filteredColumns);
+    } else {
+      setColumns(taskDataStore.getColumns());
     }
-  ]);
+  };
 
   // Trigger animations when component mounts or tasks change
   useEffect(() => {
@@ -391,38 +346,6 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         )}
       </div>
     );
-  };
-
-  const addNewTask = (task: Task) => {
-    // Ensure the task has all required properties
-    const newTask = {
-      ...task,
-      id: task.id || Date.now().toString(),
-      comments: task.comments || 0,
-      attachments: task.attachments || 0,
-      status: task.status || 'todo',
-      subtasks: task.subtasks || [],
-      attachmentsList: task.attachmentsList || [],
-      commentsList: task.commentsList || [],
-      development: task.development || {
-        branches: 0,
-        commits: 0,
-        pullRequests: 0
-      }
-    };
-
-    const targetColumnId = newTask.status;
-    const updatedColumns = columns.map(column => {
-      if (column.id === targetColumnId) {
-        return {
-          ...column,
-          tasks: [...column.tasks, newTask]
-        };
-      }
-      return column;
-    });
-    
-    setColumns(updatedColumns);
   };
 
   const handleOpenDetail = (task: Task) => {
