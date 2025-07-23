@@ -93,7 +93,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
+          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20 bg-white/10 hover:bg-white/30 transition-colors"
         >
           <Menu className="w-4 h-4" />
         </Button>

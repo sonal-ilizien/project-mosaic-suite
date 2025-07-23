@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,10 @@ import {
   Download, 
   Settings, 
   Pin,
-  Trash2
+  Trash2,
+  Maximize2,
+  Minimize2,
+  X
 } from "lucide-react";
 import { 
   BarChart, 
@@ -219,104 +222,111 @@ const ChartConfiguration = () => {
               Create Chart
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New Chart</DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="chart-name">Chart Name</Label>
-                  <Input
-                    id="chart-name"
-                    value={newChart.name}
-                    onChange={(e) => setNewChart({ ...newChart, name: e.target.value })}
-                    placeholder="Enter chart name"
-                  />
-                </div>
+          <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-hidden p-0 rounded-none">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-border bg-background">
+                <DialogTitle className="text-xl font-semibold">Create New Chart</DialogTitle>
+              </div>
+                          {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 force-scrollbar">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="chart-name">Chart Name</Label>
+                      <Input
+                        id="chart-name"
+                        value={newChart.name}
+                        onChange={(e) => setNewChart({ ...newChart, name: e.target.value })}
+                        placeholder="Enter chart name"
+                      />
+                    </div>
 
-                <div>
-                  <Label>Chart Type</Label>
-                  <Select value={newChart.type} onValueChange={(value) => setNewChart({ ...newChart, type: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {chartTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          <div className="flex items-center">
-                            <type.icon className="w-4 h-4 mr-2" />
-                            {type.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div>
+                      <Label>Chart Type</Label>
+                      <Select value={newChart.type} onValueChange={(value) => setNewChart({ ...newChart, type: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {chartTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              <div className="flex items-center">
+                                <type.icon className="w-4 h-4 mr-2" />
+                                {type.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div>
-                  <Label>X-Axis Field</Label>
-                  <Select value={newChart.xAxis} onValueChange={(value) => setNewChart({ ...newChart, xAxis: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select X-axis field" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fieldOptions.map((field) => (
-                        <SelectItem key={field.value} value={field.value}>
-                          {field.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div>
+                      <Label>X-Axis Field</Label>
+                      <Select value={newChart.xAxis} onValueChange={(value) => setNewChart({ ...newChart, xAxis: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select X-axis field" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {fieldOptions.map((field) => (
+                            <SelectItem key={field.value} value={field.value}>
+                              {field.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div>
-                  <Label>Y-Axis Field</Label>
-                  <Select value={newChart.yAxis} onValueChange={(value) => setNewChart({ ...newChart, yAxis: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Y-axis field" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fieldOptions.map((field) => (
-                        <SelectItem key={field.value} value={field.value}>
-                          {field.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div>
+                      <Label>Y-Axis Field</Label>
+                      <Select value={newChart.yAxis} onValueChange={(value) => setNewChart({ ...newChart, yAxis: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Y-axis field" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {fieldOptions.map((field) => (
+                            <SelectItem key={field.value} value={field.value}>
+                              {field.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div>
-                  <Label>Date Range</Label>
-                  <Select value={newChart.dateRange} onValueChange={(value) => setNewChart({ ...newChart, dateRange: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7days">Last 7 days</SelectItem>
-                      <SelectItem value="30days">Last 30 days</SelectItem>
-                      <SelectItem value="90days">Last 90 days</SelectItem>
-                      <SelectItem value="1year">Last year</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <div>
+                      <Label>Date Range</Label>
+                      <Select value={newChart.dateRange} onValueChange={(value) => setNewChart({ ...newChart, dateRange: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="7days">Last 7 days</SelectItem>
+                          <SelectItem value="30days">Last 30 days</SelectItem>
+                          <SelectItem value="90days">Last 90 days</SelectItem>
+                          <SelectItem value="1year">Last year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Preview</Label>
+                    <Card className="p-4 h-80">
+                      {renderPreviewChart()}
+                    </Card>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label>Preview</Label>
-                <Card className="p-4 h-64">
-                  {renderPreviewChart()}
-                </Card>
+              {/* Footer with buttons */}
+              <div className="flex justify-end space-x-3 p-6 border-t border-border bg-background">
+                <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateChart} disabled={!newChart.name || !newChart.xAxis || !newChart.yAxis}>
+                  Create Chart
+                </Button>
               </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateChart} disabled={!newChart.name || !newChart.xAxis || !newChart.yAxis}>
-                Create Chart
-              </Button>
             </div>
           </DialogContent>
         </Dialog>

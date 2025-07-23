@@ -159,7 +159,7 @@ const ViewSelector = ({
                     variant="ghost"
                     size="sm"
                     onClick={onToggleSidebar}
-                    className="hover:bg-primary/20 hover:text-foreground flex-shrink-0"
+                    className="hover:bg-primary/20 hover:text-foreground flex-shrink-0 text-white/90 hover:text-white bg-white/10 hover:bg-white/20"
                   >
                     <Menu className="w-4 h-4" />
                   </Button>
@@ -224,9 +224,16 @@ const ViewSelector = ({
             <div className="hidden sm:flex items-center justify-between w-full">
               {/* Left side with view tabs */}
               <div className="flex items-center space-x-2 flex-shrink-0">
-                {/* Spacer for floating expand button when sidebar is collapsed */}
-                {sidebarCollapsed && (
-                  <div className="w-10 h-8 flex-shrink-0" />
+                {/* Sidebar Toggle Button for Desktop/Medium when collapsed */}
+                {sidebarCollapsed && onToggleSidebar && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onToggleSidebar}
+                    className="hover:bg-primary/20 hover:text-foreground flex-shrink-0 text-white/90 hover:text-white"
+                  >
+                    <Menu className="w-4 h-4" />
+                  </Button>
                 )}
                 
                 {/* View Tabs */}

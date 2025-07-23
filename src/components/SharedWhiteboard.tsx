@@ -80,6 +80,7 @@ const SharedWhiteboard = () => {
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [selectedReporter, setSelectedReporter] = useState('');
   const [uploadDescription, setUploadDescription] = useState('');
+
   const [newItem, setNewItem] = useState({
     type: 'issue',
     title: '',
@@ -1035,9 +1036,9 @@ const SharedWhiteboard = () => {
           {selectedItem && (
             <div className="flex h-full max-h-[95vh]">
               {/* Main Content */}
-              <div className="w-[70%] overflow-y-auto p-6 min-w-0">
-                {/* Header */}
-                <div className="mb-6 bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-100 -mx-6 -mt-6 px-6 py-3 animate-in slide-in-from-top-2 duration-700">
+              <div className="w-[70%] flex flex-col min-w-0 h-full overflow-hidden">
+                {/* Sticky Header */}
+                <div className="bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-100 px-6 py-3 animate-in slide-in-from-top-2 duration-700 flex-shrink-0">
                   <div className="mb-4">
                     <div className="flex items-center space-x-4 mb-3">
                       <div className="w-10 h-10 bg-green-500 rounded flex items-center justify-center animate-in bounce-in duration-800 delay-300 hover:scale-110 hover:rotate-12 transition-all duration-300">
@@ -1066,6 +1067,7 @@ const SharedWhiteboard = () => {
                     >
                       <Heart className={`w-4 h-4 text-slate-700 hover:animate-pulse ${isLiked ? 'fill-current' : ''}`} />
                     </Button>
+
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -1138,8 +1140,10 @@ const SharedWhiteboard = () => {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div className="mb-5 animate-in zoom-in-50 duration-1000 delay-1500">
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 pb-8 force-scrollbar">
+                  {/* Description */}
+                  <div className="mb-5 animate-in zoom-in-50 duration-1000 delay-1500">
                   <div className="bg-gradient-to-r from-slate-100 to-slate-200 p-6 rounded-xl border border-slate-300/50 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200">
                     <p className="text-slate-800 leading-relaxed text-base break-words">
                       {selectedItem.description}
@@ -1219,7 +1223,7 @@ const SharedWhiteboard = () => {
                   )}
                 </div>
                   
-                {/* Comment Input - Outside the Activity card */}
+                {/* Comment Input - Inside the scrollable area */}
                 <div className="flex items-center space-x-3 mt-4">
                   <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarFallback>{generateInitials('Current User')}</AvatarFallback>
@@ -1245,12 +1249,13 @@ const SharedWhiteboard = () => {
                       Add Comment
                     </Button>
                 </div>
+                </div>
               </div>
 
               {/* Right Sidebar */}
-              <div className="w-[30%] border-l border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex flex-col min-w-0 h-full">
+              <div className="w-[30%] border-l border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col min-w-0 h-full overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8 bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-100 -mx-6 -mt-6 px-6 py-7 animate-in slide-in-from-top-2 duration-700">
+                <div className="flex items-center justify-between bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-100 px-6 py-7 animate-in slide-in-from-top-2 duration-700 flex-shrink-0">
                   <div className="animate-in slide-in-from-left-4 duration-1000 delay-800">
                                           <h3 className="font-bold text-slate-800 text-xl">Details</h3>
                       <p className="text-slate-600 text-sm mt-1">Item information & actions</p>
@@ -1360,7 +1365,7 @@ const SharedWhiteboard = () => {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="p-6 pb-8 overflow-y-auto flex-1 space-y-4 force-scrollbar">
                   {/* First Row: Status and Assignee */}
                   <div className="grid grid-cols-2 gap-4 animate-in zoom-in-50 duration-800 delay-3000">
                   {/* Status */}

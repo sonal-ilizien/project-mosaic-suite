@@ -113,7 +113,7 @@ const Index = () => {
           variant="outline"
           size="sm"
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-30 bg-background hover:bg-primary/20 hover:text-foreground shadow-lg"
+          className="fixed top-4 left-4 z-50 bg-background hover:bg-primary/20 hover:text-foreground shadow-lg border-2 border-primary/20 hover:border-primary/40 transition-all duration-200 hover:scale-105"
         >
           <Menu className="w-4 h-4" />
         </Button>
