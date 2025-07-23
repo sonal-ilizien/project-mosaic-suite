@@ -47,6 +47,7 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import AddTaskModal from "./AddTaskModal";
+import { taskDataStore, Task, KanbanColumn } from "../lib/taskData";
 
 // Utility function to generate initials from any name
 const generateInitials = (name: string): string => {
@@ -69,42 +70,9 @@ const generateInitials = (name: string): string => {
   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
 };
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  priority: string;
-  assignee: { name: string; avatar: string };
-  dueDate: string;
-  comments: number;
-  attachments: number;
-  tags: string[];
-  status: string;
-  parentId: string | null;
-  subtasks: string[];
-  attachmentsList?: Array<{
-    name: string;
-    size: string;
-    type: string;
-    url: string;
-    description: string;
-    file?: File;
-  }>;
-  commentsList?: Array<{
-    id: string;
-    author: string;
-    content: string;
-    createdAt: string;
-  }>;
-  development?: {
-    branches: number;
-    commits: number;
-    pullRequests: number;
-  };
-}
-
 interface KanbanBoardProps {
   tasks?: Task[];
+  projectId?: number; // Add projectId prop to filter tasks by project
 }
 
 const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
@@ -202,25 +170,66 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   const [showDefaultModal, setShowDefaultModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedColumnStatus, setSelectedColumnStatus] = useState<string>('todo');
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [newComment, setNewComment] = useState('');
-  const [commentsExpanded, setCommentsExpanded] = useState(false);
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  const [showSidebarOptionsMenu, setShowSidebarOptionsMenu] = useState(false);
   const [showViewMenu, setShowViewMenu] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [showSidebarOptionsMenu, setShowSidebarOptionsMenu] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
+  const [showStatusChangeModal, setShowStatusChangeModal] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [likedTasks, setLikedTasks] = useState<Set<string>>(new Set());
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [filterAssignee, setFilterAssignee] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [sortBy, setSortBy] = useState<string>('priority');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [automationRule, setAutomationRule] = useState<string>('');
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<string>('week');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+  const [activeColumnIndex, setActiveColumnIndex] = useState<number | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [displaySettings, setDisplaySettings] = useState({
+    showSubtasks: true,
+    showAttachments: true,
+    showComments: true,
+    showDevelopment: true,
+    showTags: true,
+    showDueDate: true,
+    showPriority: true,
+    showAssignee: true,
+    showProgress: true,
+    showCompleted: true,
+    groupBy: 'status',
+    viewType: 'kanban'
+  });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadDescription, setUploadDescription] = useState('');
-  const [animationKey, setAnimationKey] = useState(0);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
   const [showLabelsModal, setShowLabelsModal] = useState(false);
+  const [commentsExpanded, setCommentsExpanded] = useState(true);
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
-  const [showReporterModal, setShowReporterModal] = useState(false);
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [selectedReporter, setSelectedReporter] = useState('');

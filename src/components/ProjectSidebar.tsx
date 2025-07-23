@@ -54,26 +54,23 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
   };
 
   const templates = [
-    { id: 'personal', name: 'Personal Productivity', icon: User, color: 'bg-primary' },
-    { id: 'agile', name: 'Agile Development', icon: FolderKanban, color: 'bg-accent' },
-    { id: 'finance', name: 'Finance Management', icon: DollarSign, color: 'bg-warning' },
-    { id: 'shipbuilding', name: 'Shipbuilding Projects', icon: Anchor, color: 'bg-destructive' },
+    { id: 'personal', name: 'Personal Productivity', icon: User, color: 'bg-cyan-500' },
+    { id: 'agile', name: 'Agile Development', icon: FolderKanban, color: 'bg-indigo-500' },
+    { id: 'finance', name: 'Finance Management', icon: DollarSign, color: 'bg-emerald-500' },
+    { id: 'shipbuilding', name: 'Shipbuilding Projects', icon: Anchor, color: 'bg-orange-500' },
     { id: 'event', name: 'Event Planning', icon: Calendar, color: 'bg-purple-500' },
-    { id: 'hr', name: 'HR / Recruitment', icon: UserCheck, color: 'bg-indigo-500' },
+    { id: 'hr', name: 'HR / Recruitment', icon: UserCheck, color: 'bg-pink-500' },
     { id: 'construction', name: 'Construction / Real Estate', icon: Building, color: 'bg-amber-500' },
     { id: 'consulting', name: 'Client Service / Consulting', icon: Briefcase, color: 'bg-teal-500' },
-    { id: 'education', name: 'Education / Course Planning', icon: GraduationCap, color: 'bg-pink-500' },
-    { id: 'product', name: 'Product Launch Roadmaps', icon: Rocket, color: 'bg-cyan-500' }
+    { id: 'education', name: 'Education / Course Planning', icon: GraduationCap, color: 'bg-violet-500' },
+    { id: 'product', name: 'Product Launch Roadmaps', icon: Rocket, color: 'bg-rose-500' }
   ];
 
   // Using projects from context instead of local array
 
   return (
     <div 
-      className={`${isMobile ? 'w-full' : 'w-64'} bg-background-secondary border-r border-border h-screen flex flex-col relative sticky top-0`}
-      style={{
-        background: '#5F9EA0'
-      }}
+      className={`${isMobile ? 'w-full' : 'w-64'} bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 border-r border-white/20 h-screen flex flex-col relative sticky top-0 shadow-2xl sidebar-glow sidebar-morph sidebar-text sidebar-no-blur`}
     >
       {/* Close button for mobile */}
       {isMobile && onToggleCollapse && (
@@ -81,7 +78,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
+          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20 ripple-effect icon-animated"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -93,21 +90,29 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20 bg-white/10 hover:bg-white/30 transition-colors"
+          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20 ripple-effect icon-animated"
         >
           <Menu className="w-4 h-4" />
         </Button>
       )}
       
       {/* Header */}
-      <div className="p-4 sm:p-6 border-b border-white/20" style={{ background: '#5F9EA0' }}>
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-            <Briefcase className="w-4 h-4 text-white" />
+      <div className="p-4 sm:p-6 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16 float-animation"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12 float-animation" style={{ animationDelay: '2s' }}></div>
+        
+        {/* Additional morphing elements */}
+        <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-gradient-to-r from-yellow-400/10 to-orange-400/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        
+        <div className="flex items-center space-x-3 relative z-10">
+          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 shadow-lg glow-border">
+            <Briefcase className="w-5 h-5 text-white icon-animated" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="font-semibold text-white text-sm sm:text-base truncate">ProjectFlow</h1>
-            <p className="text-xs text-white/70 truncate">Management Suite</p>
+            <h1 className="font-bold text-white text-lg sm:text-xl truncate">ProjectFlow</h1>
+            <p className="text-xs text-white/90 truncate font-medium">Management Suite</p>
           </div>
         </div>
       </div>
@@ -117,102 +122,102 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         <nav className="space-y-1">
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'dashboard' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'dashboard' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('dashboard')}
           >
-            <LayoutDashboard className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Dashboard</span>
+            <LayoutDashboard className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Dashboard</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'kanban' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'kanban' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('kanban')}
           >
-            <FolderKanban className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Kanban</span>
+            <FolderKanban className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Kanban</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'list' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'list' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('list')}
           >
-            <List className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Tasks</span>
+            <List className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Tasks</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'calendar' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'calendar' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('calendar')}
           >
-            <Calendar className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Calendar</span>
+            <Calendar className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Calendar</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'templates' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'templates' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('templates')}
           >
-            <Filter className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Templates</span>
+            <Filter className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Templates</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'analytics' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'analytics' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('analytics')}
           >
-            <BarChart3 className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Analytics</span>
+            <BarChart3 className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Analytics</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'chart-config' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'chart-config' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('chart-config')}
           >
-            <TrendingUp className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Charts</span>
+            <TrendingUp className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Charts</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'template-comparison' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'template-comparison' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('template-comparison')}
           >
-            <GitCompare className="w-4 h-4 mr-2 sm:mr-3" />
-            <span className="truncate">Compare</span>
+            <GitCompare className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Compare</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-              activeView === 'whiteboard' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base menu-item-animated ripple-effect ${
+              activeView === 'whiteboard' ? 'bg-white/20 text-white hover:bg-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black'
             }`}
             onClick={() => onViewChange?.('whiteboard')}
           >
-            <MessageSquare className="w-4 h-4 mr-2 sm:mr-3" />
+            <MessageSquare className="w-4 h-4 mr-2 sm:mr-3 icon-animated" />
             <span className="truncate">Board</span>
           </Button>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start text-sm sm:text-base ${
-                activeView === 'team' ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/90 hover:bg-white/20 hover:text-white'
+            className={`w-full justify-start text-sm sm:text-base menu-item-animated ripple-effect ${
+                activeView === 'team' ? 'bg-white/20 text-white hover:bg-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black'
             }`}
             onClick={() => onViewChange?.('team')}
           >
-            <Users className="w-4 h-4 mr-2 sm:mr-3" />
+            <Users className="w-4 h-4 mr-2 sm:mr-3 icon-animated" />
             <span className="truncate">Team</span>
           </Button>
         </nav>
@@ -221,11 +226,11 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         <div className="pt-4">
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto text-white/90 hover:bg-white/20 hover:text-white"
+            className="w-full justify-between p-2 h-auto text-white/95 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
             onClick={() => toggleSection('templates')}
           >
             <span className="text-sm font-medium text-white">Templates</span>
-            <ChevronDown className={`w-4 h-4 transition-transform text-white ${expandedSections.templates ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 transition-transform text-white icon-animated ${expandedSections.templates ? 'rotate-180' : ''}`} />
           </Button>
           
           {expandedSections.templates && (
@@ -234,7 +239,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
                 <Button
                   key={template.id}
                   variant="ghost"
-                  className="w-full justify-start text-xs sm:text-sm py-2 text-white/80 hover:bg-white/20 hover:text-white"
+                  className="w-full justify-start text-xs sm:text-sm py-2 text-white/90 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
                 >
                   <div className={`w-2 h-2 rounded-full ${template.color} mr-2 sm:mr-3`} />
                   <span className="truncate">{template.name}</span>
@@ -248,66 +253,39 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
         <div className="pt-4">
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto text-white/90 hover:bg-white/20 hover:text-white"
+            className="w-full justify-between p-2 h-auto text-white/95 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
             onClick={() => toggleSection('projects')}
           >
             <span className="text-sm font-medium text-white">Recent Projects</span>
-            <ChevronDown className={`w-4 h-4 transition-transform text-white ${expandedSections.projects ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 transition-transform text-white icon-animated ${expandedSections.projects ? 'rotate-180' : ''}`} />
           </Button>
           
           {expandedSections.projects && (
-            <div className="ml-2 mt-2 space-y-2">
-              {projects.slice(0, 3).map((project) => (
-                <div key={project.id} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-                  <div className="mb-1">
-                    <h4 className="text-xs sm:text-sm font-medium text-white truncate mb-1">{project.name}</h4>
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs font-medium ${
-                        project.status === 'In Progress' ? 'bg-blue-500 text-white' : 
-                        project.status === 'Completed' ? 'bg-green-500 text-white' : 
-                        project.status === 'Review' ? 'bg-yellow-500 text-white' : 
-                        'bg-gray-500 text-white'
-                      }`}
-                    >
-                      {project.status}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-white/20 rounded-full h-1.5">
-                      <div 
-                        className={`h-1.5 rounded-full transition-all ${
-                          project.progress >= 100 ? 'bg-green-500' :
-                          project.progress >= 75 ? 'bg-blue-500' :
-                          project.progress >= 50 ? 'bg-yellow-500' :
-                          project.progress >= 25 ? 'bg-orange-500' :
-                          'bg-red-500'
-                        }`}
-                        style={{ width: `${project.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-white/70">{project.progress}%</span>
-                  </div>
-                </div>
+            <div className="ml-2 mt-2 space-y-1">
+              {projects.slice(0, 5).map((project) => (
+                <Button
+                  key={project.id}
+                  variant="ghost"
+                  className="w-full justify-start text-xs sm:text-sm py-2 text-white/90 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
+                >
+                  <div className="w-2 h-2 rounded-full bg-white/60 mr-2 sm:mr-3" />
+                  <span className="truncate">{project.name}</span>
+                </Button>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="p-3 sm:p-4 border-t border-white/20">
-        <Button 
-          className="w-full bg-white/20 hover:bg-white/30 text-white text-sm sm:text-base border border-white/30"
+      {/* Footer */}
+      <div className="p-4 border-t border-white/20 bg-gradient-to-r from-blue-600/50 to-indigo-600/50">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-white/95 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
           onClick={() => setShowNewProjectModal(true)}
         >
-          <PlusCircle className="w-4 h-4 mr-2" />
-          <span className="truncate">New Project</span>
-        </Button>
-        
-        <Button variant="ghost" className="w-full justify-start mt-2 text-white/90 hover:bg-white/20 hover:text-white text-sm sm:text-base">
-          <Settings className="w-4 h-4 mr-2 sm:mr-3" />
-          <span className="truncate">Settings</span>
+          <PlusCircle className="w-4 h-4 mr-2 sm:mr-3 icon-animated" />
+          <span className="text-sm font-medium">New Project</span>
         </Button>
       </div>
 
@@ -315,24 +293,21 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
       <NewProjectModal
         open={showNewProjectModal}
         onOpenChange={setShowNewProjectModal}
-        onProjectCreate={(project) => {
-          // Convert modal project to context project format
-          const newProject = {
+        onProjectCreate={(projectData) => {
+          const project = {
             id: Date.now(),
-            name: project.name,
-            type: project.template || 'General',
-            status: project.status === 'backlog' ? 'Planning' : 
-                    project.status === 'in-progress' ? 'In Progress' : 
-                    project.status === 'completed' ? 'Completed' : 'Planning',
-            priority: project.priority || 'Medium',
-            assignee: project.team[0] || 'Unassigned',
-            dueDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+            name: projectData.name,
+            type: projectData.template || 'General',
+            status: projectData.status || 'Planning',
+            priority: projectData.priority || 'Medium',
+            assignee: (projectData as any).lead || 'Unassigned',
+            dueDate: projectData.endDate ? new Date(projectData.endDate).toISOString().split('T')[0] : '',
             progress: 0,
             tasks: 0,
             completedTasks: 0,
-            description: project.description
+            description: projectData.description || ''
           };
-          addProject(newProject);
+          addProject(project);
           setShowNewProjectModal(false);
         }}
       />

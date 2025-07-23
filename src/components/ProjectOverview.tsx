@@ -249,7 +249,7 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
                 Add Task
               </Button>
             </div>
-            <KanbanBoard />
+            <KanbanBoard projectId={project.id} />
           </div>
         </TabsContent>
 
@@ -289,6 +289,7 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
         open={showAddTaskModal}
         onOpenChange={setShowAddTaskModal}
         defaultProject={project.id?.toString()}
+        projectId={project.id}
         onTaskCreate={(task) => {
           console.log('Task created for project:', project.name, task);
           setShowAddTaskModal(false);
