@@ -46,6 +46,14 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import AddTaskModal from "./AddTaskModal";
 import { taskDataStore, Task, KanbanColumn } from "../lib/taskData";
 
@@ -159,7 +167,16 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     showWeekNumbers: true, // Show week numbers in timeline view
     showClosedProjects: 'all', // 'none', 'past-week', 'past-month', 'past-3-months', 'past-6-months', 'all'
     orderBy: 'manual', // 'manual', 'name', 'priority', 'due-date', 'created'
-    timelineZoom: 'month' // 'year', 'quarter', 'month', 'week'
+    timelineZoom: 'month', // 'year', 'quarter', 'month', 'week'
+    showSubtasks: true,
+    showAttachments: true,
+    showComments: true,
+    showDevelopment: true,
+    showTags: true,
+    showDueDate: true,
+    showPriority: true,
+    showAssignee: true,
+    showProgress: true
   });
   const [selectedProperties, setSelectedProperties] = useState([
     'Status', 'Priority', 'Assignee', 'Target Date'
@@ -170,69 +187,31 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   const [showDefaultModal, setShowDefaultModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedColumnStatus, setSelectedColumnStatus] = useState<string>('todo');
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showViewMenu, setShowViewMenu] = useState(false);
-  const [showSidebarOptionsMenu, setShowSidebarOptionsMenu] = useState(false);
-  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
-  const [showStatusChangeModal, setShowStatusChangeModal] = useState(false);
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [newComment, setNewComment] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [likedTasks, setLikedTasks] = useState<Set<string>>(new Set());
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterPriority, setFilterPriority] = useState<string>('all');
-  const [filterAssignee, setFilterAssignee] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
-  const [sortBy, setSortBy] = useState<string>('priority');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
-  const [isSelectMode, setIsSelectMode] = useState(false);
-  const [showBulkActions, setShowBulkActions] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importFile, setImportFile] = useState<File | null>(null);
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [showAutomationModal, setShowAutomationModal] = useState(false);
-  const [automationRule, setAutomationRule] = useState<string>('');
-  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
-  const [analyticsPeriod, setAnalyticsPeriod] = useState<string>('week');
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [animationKey, setAnimationKey] = useState(0);
-  const [activeColumnIndex, setActiveColumnIndex] = useState<number | null>(null);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [displaySettings, setDisplaySettings] = useState({
-    showSubtasks: true,
-    showAttachments: true,
-    showComments: true,
-    showDevelopment: true,
-    showTags: true,
-    showDueDate: true,
-    showPriority: true,
-    showAssignee: true,
-    showProgress: true,
-    showCompleted: true,
-    groupBy: 'status',
-    viewType: 'kanban'
-  });
+  const [commentsExpanded, setCommentsExpanded] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [showSidebarOptionsMenu, setShowSidebarOptionsMenu] = useState(false);
+  const [showViewMenu, setShowViewMenu] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadDescription, setUploadDescription] = useState('');
-  const [isLiked, setIsLiked] = useState(false);
-  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
   const [showLabelsModal, setShowLabelsModal] = useState(false);
-  const [commentsExpanded, setCommentsExpanded] = useState(true);
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
-  const [selectedAssignee, setSelectedAssignee] = useState<string>('');
+  const [showReporterModal, setShowReporterModal] = useState(false);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [selectedReporter, setSelectedReporter] = useState('');
+  
+  // Priority change state
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState<string | null>(null);
   
   // Timeline-specific state
   const [timelineCurrentDate, setTimelineCurrentDate] = useState(new Date());
@@ -587,11 +566,115 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           <h4 className="font-medium text-foreground text-sm leading-tight flex-1">
             {task.title}
           </h4>
-          {selectedProperties.includes('Priority') && (
-            <Badge className={`${getPriorityColor(task.priority)} text-xs ml-2`}>
-              {task.priority}
-            </Badge>
-          )}
+          <div className="flex items-center space-x-1">
+            {selectedProperties.includes('Priority') && (
+              <Badge className={`${getPriorityColor(task.priority)} text-xs ml-2`}>
+                {task.priority}
+              </Badge>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPriorityDropdown(showPriorityDropdown === task.id ? null : task.id);
+                  }}
+                >
+                  <MoreHorizontal className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                  <span>Change priority...</span>
+                  <span className="text-xs text-muted-foreground">P then P</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePriorityChange(task.id, 'No priority');
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-dashed border-gray-400 rounded"></div>
+                    <span>No priority</span>
+                  </div>
+                  {task.priority === 'No priority' && <CheckCircle className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePriorityChange(task.id, 'Urgent');
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 bg-red-500 rounded flex items-center justify-center">
+                      <span className="text-white text-xs">!</span>
+                    </div>
+                    <span>Urgent</span>
+                  </div>
+                  {task.priority === 'Urgent' && <CheckCircle className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePriorityChange(task.id, 'High');
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      <div className="flex space-x-0.5">
+                        <div className="w-0.5 h-3 bg-gray-400"></div>
+                        <div className="w-0.5 h-2 bg-gray-400"></div>
+                        <div className="w-0.5 h-1 bg-gray-400"></div>
+                      </div>
+                    </div>
+                    <span>High</span>
+                  </div>
+                  {task.priority === 'High' && <CheckCircle className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePriorityChange(task.id, 'Medium');
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      <div className="flex space-x-0.5">
+                        <div className="w-0.5 h-2 bg-gray-400"></div>
+                        <div className="w-0.5 h-1 bg-gray-400"></div>
+                      </div>
+                    </div>
+                    <span>Medium</span>
+                  </div>
+                  {task.priority === 'Medium' && <CheckCircle className="w-4 h-4" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePriorityChange(task.id, 'Low');
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      <div className="w-0.5 h-1 bg-gray-400"></div>
+                    </div>
+                    <span>Low</span>
+                  </div>
+                  {task.priority === 'Low' && <CheckCircle className="w-4 h-4" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Horizontal Layout - More compact */}
@@ -1045,6 +1128,20 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   const handleViewMenu = () => {
     setShowViewMenu(!showViewMenu);
+  };
+
+  const handlePriorityChange = (taskId: string, newPriority: string) => {
+    // Update the task priority in the tasks array
+    const updatedTasks = tasks.map(task => 
+      task.id === taskId ? { ...task, priority: newPriority } : task
+    );
+    
+    // In a real application, you would also update the backend
+    // For now, we'll just update the local state
+    console.log(`Priority changed for task ${taskId} to ${newPriority}`);
+    
+    // Close the dropdown
+    setShowPriorityDropdown(null);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

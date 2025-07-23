@@ -337,8 +337,8 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
             >
                               <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white mb-2">{stat.label}</p>
-                    <p className="text-3xl font-bold text-white mb-3">{stat.value}</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">{stat.label}</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-3">{stat.value}</p>
                     <div className="flex items-center">
                       <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         stat.trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -350,10 +350,10 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                         )}
                         {stat.change}
                       </div>
-                      <span className="text-xs text-white/80 ml-2">this week</span>
+                      <span className="text-xs text-gray-600 ml-2">this week</span>
                     </div>
                   </div>
-                  <div className={`p-4 rounded-xl ${stat.iconBg} text-white flex-shrink-0 ml-4 shadow-md`}>
+                  <div className={`p-4 rounded-xl ${stat.iconBg} ${stat.color} flex-shrink-0 ml-4 shadow-md`}>
                     <stat.icon className="w-6 h-6" />
                   </div>
                 </div>
