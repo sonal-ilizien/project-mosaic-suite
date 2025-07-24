@@ -33,8 +33,9 @@ import SharedWhiteboard from "./SharedWhiteboard";
 import NewProjectModal from "./NewProjectModal";
 import TemplateGallery from "./TemplateGallery";
 import AddTaskModal from "./AddTaskModal";
+import Team from "./Team";
 
-type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview' | 'chart-config' | 'template-comparison' | 'whiteboard';
+type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview' | 'chart-config' | 'template-comparison' | 'whiteboard' | 'team';
 
 interface ViewSelectorProps {
   activeView?: string;
@@ -42,6 +43,7 @@ interface ViewSelectorProps {
   onToggleSidebar?: () => void;
   isMobile?: boolean;
   mobileSidebarOpen?: boolean;
+  selectedProjectFromSidebar?: Record<string, unknown> | null;
 }
 
 const ViewSelector = ({ 
@@ -49,7 +51,8 @@ const ViewSelector = ({
   sidebarCollapsed = false, 
   onToggleSidebar,
   isMobile = false,
-  mobileSidebarOpen = false
+  mobileSidebarOpen = false,
+  selectedProjectFromSidebar
 }: ViewSelectorProps) => {
   const [activeView, setActiveView] = useState<ViewType>((propActiveView as ViewType) || 'dashboard');
 
@@ -58,6 +61,14 @@ const ViewSelector = ({
       setActiveView(propActiveView as ViewType);
     }
   }, [propActiveView]);
+
+  // Handle project selection from sidebar
+  useEffect(() => {
+    if (selectedProjectFromSidebar) {
+      setSelectedProject(selectedProjectFromSidebar);
+      setActiveView('project-overview');
+    }
+  }, [selectedProjectFromSidebar]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState<Record<string, unknown> | null>(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -72,7 +83,8 @@ const ViewSelector = ({
     { id: 'list', name: 'List', icon: List, description: 'Detailed Task List' },
     { id: 'calendar', name: 'Calendar', icon: Calendar, description: 'Timeline View' },
     { id: 'templates', name: 'Templates', icon: Filter, description: 'Project Templates' },
-    { id: 'analytics', name: 'Analytics', icon: BarChart3, description: 'Charts & Reports' }
+    { id: 'analytics', name: 'Analytics', icon: BarChart3, description: 'Charts & Reports' },
+    { id: 'team', name: 'Team', icon: User, description: 'Team Management' }
   ];
 
   const handleProjectCreate = (project: any) => {
@@ -133,6 +145,8 @@ const ViewSelector = ({
         return <TemplateComparison />;
       case 'whiteboard':
         return <SharedWhiteboard />;
+      case 'team':
+        return <Team />;
       case 'project-overview':
         return selectedProject ? (
           <ProjectOverview 

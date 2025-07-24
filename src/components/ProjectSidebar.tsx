@@ -33,15 +33,15 @@ import { useProjects } from "../contexts/ProjectContext";
 interface ProjectSidebarProps {
   activeView?: string;
   onViewChange?: (view: string) => void;
+  onProjectSelect?: (project: Record<string, unknown>) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   isMobile?: boolean;
 }
 
-const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = false, onToggleCollapse, isMobile = false }: ProjectSidebarProps) => {
+const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, onProjectSelect, collapsed = false, onToggleCollapse, isMobile = false }: ProjectSidebarProps) => {
   const [expandedSections, setExpandedSections] = useState({
-    projects: true,
-    templates: false
+    projects: true
   });
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const { projects, addProject } = useProjects();
@@ -53,18 +53,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
     }));
   };
 
-  const templates = [
-    { id: 'personal', name: 'Personal Productivity', icon: User, color: 'bg-cyan-500' },
-    { id: 'agile', name: 'Agile Development', icon: FolderKanban, color: 'bg-indigo-500' },
-    { id: 'finance', name: 'Finance Management', icon: DollarSign, color: 'bg-emerald-500' },
-    { id: 'shipbuilding', name: 'Shipbuilding Projects', icon: Anchor, color: 'bg-orange-500' },
-    { id: 'event', name: 'Event Planning', icon: Calendar, color: 'bg-purple-500' },
-    { id: 'hr', name: 'HR / Recruitment', icon: UserCheck, color: 'bg-pink-500' },
-    { id: 'construction', name: 'Construction / Real Estate', icon: Building, color: 'bg-amber-500' },
-    { id: 'consulting', name: 'Client Service / Consulting', icon: Briefcase, color: 'bg-teal-500' },
-    { id: 'education', name: 'Education / Course Planning', icon: GraduationCap, color: 'bg-violet-500' },
-    { id: 'product', name: 'Product Launch Roadmaps', icon: Rocket, color: 'bg-rose-500' }
-  ];
+
 
   // Using projects from context instead of local array
 
@@ -222,32 +211,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
           </Button>
         </nav>
 
-        {/* Project Templates Section */}
-        <div className="pt-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-between p-2 h-auto text-white/95 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
-            onClick={() => toggleSection('templates')}
-          >
-            <span className="text-sm font-medium text-white">Templates</span>
-            <ChevronDown className={`w-4 h-4 transition-transform text-white icon-animated ${expandedSections.templates ? 'rotate-180' : ''}`} />
-          </Button>
-          
-          {expandedSections.templates && (
-            <div className="ml-2 mt-2 space-y-1">
-              {templates.map((template) => (
-                <Button
-                  key={template.id}
-                  variant="ghost"
-                  className="w-full justify-start text-xs sm:text-sm py-2 text-white/90 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
-                >
-                  <div className={`w-2 h-2 rounded-full ${template.color} mr-2 sm:mr-3`} />
-                  <span className="truncate">{template.name}</span>
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
+
 
         {/* Recent Projects */}
         <div className="pt-4">
@@ -267,6 +231,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
                   key={project.id}
                   variant="ghost"
                   className="w-full justify-start text-xs sm:text-sm py-2 text-white/90 hover:bg-white/20 hover:text-black menu-item-animated ripple-effect"
+                  onClick={() => onProjectSelect?.(project as unknown as Record<string, unknown>)}
                 >
                   <div className="w-2 h-2 rounded-full bg-white/60 mr-2 sm:mr-3" />
                   <span className="truncate">{project.name}</span>
@@ -300,7 +265,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, collapsed = fa
             type: projectData.template || 'General',
             status: projectData.status || 'Planning',
             priority: projectData.priority || 'Medium',
-            assignee: (projectData as any).lead || 'Unassigned',
+            assignee: 'Unassigned',
             dueDate: projectData.endDate ? new Date(projectData.endDate).toISOString().split('T')[0] : '',
             progress: 0,
             tasks: 0,

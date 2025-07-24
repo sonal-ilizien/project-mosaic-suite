@@ -16,7 +16,11 @@ import {
   Eye,
   Clock as ClockIcon,
   Target,
-  Zap
+  Zap,
+  X,
+  User,
+  MessageSquare,
+  Paperclip
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +32,7 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import AddTaskModal from "./AddTaskModal";
 import NewProjectModal from "./NewProjectModal";
@@ -82,11 +87,122 @@ interface Project {
   priority?: string;
 }
 
+interface ScheduleTask {
+  title: string;
+  time: string;
+  type: string;
+  urgent: boolean;
+  icon: any; // Using any for Lucide icons to avoid complex type issues
+  color: string;
+  description?: string;
+  assignee?: string;
+  dueDate?: string;
+  comments?: number;
+  attachments?: number;
+  attachmentsList?: Array<{
+    name: string;
+    size: string;
+    type: string;
+    url: string;
+  }>;
+  commentsList?: Array<{
+    id: string;
+    author: string;
+    content: string;
+    createdAt: string;
+  }>;
+}
+
 // Using the Project interface defined above
 
 const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<string, unknown> | { type: string }) => void }) => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const [showTaskDetailsModal, setShowTaskDetailsModal] = useState(false);
+  const [showEditTaskModal, setShowEditTaskModal] = useState(false);
+  const [selectedScheduleTask, setSelectedScheduleTask] = useState<ScheduleTask | null>(null);
+  const [upcomingTasks, setUpcomingTasks] = useState<ScheduleTask[]>([
+    { 
+      title: 'Sprint Planning Meeting', 
+      time: '10:00 AM', 
+      type: 'Meeting', 
+      urgent: true,
+      icon: Target,
+      color: 'bg-blue-500',
+      description: 'Weekly sprint planning session to discuss upcoming tasks, priorities, and team capacity. Review previous sprint outcomes and plan new sprint goals.',
+      assignee: 'Sarah Johnson',
+      dueDate: 'Today',
+      comments: 3,
+      attachments: 2,
+      commentsList: [
+        { id: '1', author: 'John Doe', content: 'Great points!', createdAt: '2023-10-26T10:00:00Z' },
+        { id: '2', author: 'Jane Smith', content: 'I agree with John.', createdAt: '2023-10-26T10:05:00Z' },
+        { id: '3', author: 'Mike Chen', content: 'Looking forward to this meeting!', createdAt: '2023-10-26T10:15:00Z' },
+      ],
+      attachmentsList: [
+        { name: 'SprintReport.pdf', size: '1.2MB', type: 'application/pdf', url: '#' },
+        { name: 'SprintNotes.txt', size: '0.5MB', type: 'text/plain', url: '#' },
+      ]
+    },
+    { 
+      title: 'Code Review - Auth Module', 
+      time: '2:00 PM', 
+      type: 'Review', 
+      urgent: false,
+      icon: Eye,
+      color: 'bg-purple-500',
+      description: 'Review authentication module implementation including user login, registration, and password reset functionality.',
+      assignee: 'Mike Chen',
+      dueDate: 'Today',
+      comments: 5,
+      attachments: 1,
+      commentsList: [
+        { id: '3', author: 'Alice Brown', content: 'Looks good!', createdAt: '2023-10-26T14:00:00Z' },
+        { id: '4', author: 'Bob White', content: 'Minor comments.', createdAt: '2023-10-26T14:05:00Z' },
+      ],
+      attachmentsList: [
+        { name: 'AuthModule.zip', size: '2.1MB', type: 'application/zip', url: '#' },
+      ]
+    },
+    { 
+      title: 'Budget Approval Call', 
+      time: '4:30 PM', 
+      type: 'Finance', 
+      urgent: true,
+      icon: BarChart3,
+      color: 'bg-orange-500',
+      description: 'Quarterly budget review and approval meeting with stakeholders. Discuss project funding and resource allocation.',
+      assignee: 'Alex Rodriguez',
+      dueDate: 'Today',
+      comments: 8,
+      attachments: 4,
+      commentsList: [
+        { id: '5', author: 'Charlie Black', content: 'Approved!', createdAt: '2023-10-26T16:00:00Z' },
+        { id: '6', author: 'Diana Green', content: 'Minor adjustments needed.', createdAt: '2023-10-26T16:05:00Z' },
+      ],
+      attachmentsList: [
+        { name: 'BudgetReport.xlsx', size: '1.5MB', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', url: '#' },
+        { name: 'BudgetNotes.docx', size: '0.8MB', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', url: '#' },
+      ]
+    },
+    { 
+      title: 'Design System Update', 
+      time: 'Tomorrow', 
+      type: 'Design', 
+      urgent: false,
+      icon: LayoutTemplate,
+      color: 'bg-green-500',
+      description: 'Update design system components and documentation. Review new component additions and style guide updates.',
+      assignee: 'John Smith',
+      dueDate: 'Tomorrow',
+      comments: 2,
+      attachments: 0,
+      commentsList: [
+        { id: '7', author: 'Eve Red', content: 'Ready for review.', createdAt: '2023-10-27T09:00:00Z' },
+      ],
+      attachmentsList: []
+    }
+  ]);
   const { projects, addProject } = useProjects();
   // const { projects } = useProjects();
 
@@ -163,41 +279,6 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
       };
     });
 
-  const upcomingTasks = [
-    { 
-      title: 'Sprint Planning Meeting', 
-      time: '10:00 AM', 
-      type: 'Meeting', 
-      urgent: true,
-      icon: Target,
-      color: 'bg-blue-500'
-    },
-    { 
-      title: 'Code Review - Auth Module', 
-      time: '2:00 PM', 
-      type: 'Review', 
-      urgent: false,
-      icon: Eye,
-      color: 'bg-purple-500'
-    },
-    { 
-      title: 'Budget Approval Call', 
-      time: '4:30 PM', 
-      type: 'Finance', 
-      urgent: true,
-      icon: BarChart3,
-      color: 'bg-orange-500'
-    },
-    { 
-      title: 'Design System Update', 
-      time: 'Tomorrow', 
-      type: 'Design', 
-      urgent: false,
-      icon: LayoutTemplate,
-      color: 'bg-green-500'
-    }
-  ];
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'High': return 'bg-red-500 text-white';
@@ -262,6 +343,52 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
     };
     addProject(newProject);
     setShowNewProjectModal(false);
+  };
+
+  const handleTaskDetailsClick = (task: ScheduleTask) => {
+    setSelectedScheduleTask(task);
+    setShowTaskDetailsModal(true);
+  };
+
+  const handleArrowClick = (e: React.MouseEvent, task: ScheduleTask) => {
+    e.stopPropagation();
+    handleTaskDetailsClick(task);
+  };
+
+  const handleEditTask = () => {
+    setShowTaskDetailsModal(false);
+    setShowEditTaskModal(true);
+  };
+
+  const handleUpdateTask = (updatedTask: ScheduleTask) => {
+    if (selectedScheduleTask) {
+      const updatedTasks = upcomingTasks.map(task => 
+        task.title === selectedScheduleTask.title ? updatedTask : task
+      );
+      setUpcomingTasks(updatedTasks);
+      setSelectedScheduleTask(updatedTask);
+      setShowEditTaskModal(false);
+      setShowTaskDetailsModal(true);
+    }
+  };
+
+  const handleMarkComplete = () => {
+    // Here you would typically update the task status
+    console.log('Marking task as complete:', selectedScheduleTask?.title);
+    setShowTaskDetailsModal(false);
+  };
+
+  const handleDownloadAttachment = (attachment: { name: string; url: string; size: string; type: string }) => {
+    // Create a temporary link element to trigger download
+    const link = document.createElement('a');
+    link.href = attachment.url || '#';
+    link.download = attachment.name;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('Downloading attachment:', attachment.name);
   };
 
   return (
@@ -480,6 +607,7 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                   <div 
                     key={index} 
                     className="group p-3 rounded-lg hover:bg-gradient-to-r hover:from-gray-50 hover:to-white border border-gray-100 hover:border-orange-200 transition-all duration-300 cursor-pointer"
+                    onClick={() => handleTaskDetailsClick(task)}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-start space-x-3">
@@ -505,7 +633,12 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                             </Badge>
                             <span className="text-xs text-muted-foreground">{task.time}</span>
                           </div>
-                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                            onClick={(e) => handleArrowClick(e, task)}
+                          >
                             <ArrowUpRight className="w-3 h-3" />
                           </Button>
                         </div>
@@ -556,6 +689,265 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
         onOpenChange={setShowNewProjectModal}
         onProjectCreate={handleProjectCreate}
       />
+
+             <Dialog open={showTaskDetailsModal} onOpenChange={setShowTaskDetailsModal}>
+         <DialogContent className="max-w-6xl w-[95vw] max-h-[95vh] overflow-hidden p-0">
+           <div className="flex h-full">
+             {/* Left Panel - Task Details */}
+             <div className="w-2/3 p-6 overflow-y-auto">
+               <DialogHeader className="mb-6">
+                 <div className="flex items-start space-x-4">
+                   {selectedScheduleTask && (
+                     <div className={`w-16 h-16 ${selectedScheduleTask.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                       <selectedScheduleTask.icon className="w-8 h-8 text-white" />
+                     </div>
+                   )}
+                   <div className="flex-1">
+                     <DialogTitle className="text-2xl font-bold mb-2">{selectedScheduleTask?.title}</DialogTitle>
+                     <div className="flex items-center space-x-3 mb-4">
+                       <Badge variant="outline" className="text-sm font-medium border-gray-200 px-3 py-1">
+                         {selectedScheduleTask?.type}
+                       </Badge>
+                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                         <ClockIcon className="w-4 h-4" />
+                         <span>{selectedScheduleTask?.time}</span>
+                       </div>
+                       {selectedScheduleTask?.urgent && (
+                         <div className="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full">
+                           <AlertTriangle className="w-4 h-4 text-red-500" />
+                           <span className="text-sm text-red-600 font-medium">Urgent</span>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 </div>
+               </DialogHeader>
+               
+               <div className="space-y-6">
+                 {/* Description Section */}
+                 {selectedScheduleTask?.description && (
+                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
+                     <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
+                       <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                       Description
+                     </h3>
+                     <p className="text-base text-gray-700 leading-relaxed">
+                       {selectedScheduleTask.description}
+                     </p>
+                   </div>
+                 )}
+                 
+                 {/* Task Details Grid */}
+                 <div className="grid grid-cols-2 gap-6">
+                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
+                     <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                       <User className="w-5 h-5 mr-2 text-green-600" />
+                       Task Details
+                     </h3>
+                     <div className="space-y-4">
+                       <div className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-green-100">
+                         <div className="flex items-center space-x-3">
+                           <User className="w-5 h-5 text-green-600" />
+                           <span className="text-sm font-medium text-gray-700">Assignee</span>
+                         </div>
+                         <span className="text-sm font-semibold text-gray-900">{selectedScheduleTask?.assignee || 'Unassigned'}</span>
+                       </div>
+                       
+                       <div className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-green-100">
+                         <div className="flex items-center space-x-3">
+                           <ClockIcon className="w-5 h-5 text-green-600" />
+                           <span className="text-sm font-medium text-gray-700">Due Date</span>
+                         </div>
+                         <span className="text-sm font-semibold text-gray-900">{selectedScheduleTask?.dueDate || 'No due date'}</span>
+                       </div>
+                       
+                       <div className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-green-100">
+                         <div className="flex items-center space-x-3">
+                           <MessageSquare className="w-5 h-5 text-green-600" />
+                           <span className="text-sm font-medium text-gray-700">Comments</span>
+                         </div>
+                         <span className="text-sm font-semibold text-gray-900">{selectedScheduleTask?.comments || 0}</span>
+                       </div>
+                       
+                       <div className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-green-100">
+                         <div className="flex items-center space-x-3">
+                           <Paperclip className="w-5 h-5 text-green-600" />
+                           <span className="text-sm font-medium text-gray-700">Attachments</span>
+                         </div>
+                         <span className="text-sm font-semibold text-gray-900">{selectedScheduleTask?.attachments || 0}</span>
+                       </div>
+                     </div>
+                   </div>
+                   
+                   {/* Comments Section */}
+                   {selectedScheduleTask?.commentsList && selectedScheduleTask.commentsList.length > 0 && (
+                     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+                       <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                         <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
+                         Comments ({selectedScheduleTask.commentsList.length})
+                       </h3>
+                       <div className="space-y-4 max-h-64 overflow-y-auto">
+                         {selectedScheduleTask.commentsList.map((comment) => (
+                           <div key={comment.id} className="bg-white/80 rounded-lg p-4 border-l-4 border-blue-300 shadow-sm">
+                             <div className="flex items-center justify-between mb-2">
+                               <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
+                               <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">
+                                 {new Date(comment.createdAt).toLocaleDateString()}
+                               </span>
+                             </div>
+                             <p className="text-sm text-gray-700 leading-relaxed">{comment.content}</p>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             </div>
+             
+             {/* Right Panel - Attachments & Actions */}
+             <div className="w-1/3 bg-gray-50 p-6 border-l border-gray-200 relative">
+               {/* Top spacing to avoid overlap with modal controls */}
+               <div className="h-12"></div>
+               
+               {/* Attachments Section */}
+               {selectedScheduleTask?.attachmentsList && selectedScheduleTask.attachmentsList.length > 0 && (
+                 <div className="mb-6 bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+                   <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                     <Paperclip className="w-5 h-5 mr-2 text-purple-600" />
+                     Attachments ({selectedScheduleTask.attachmentsList.length})
+                   </h3>
+                   <div className="space-y-3">
+                     {selectedScheduleTask.attachmentsList.map((attachment, index) => (
+                       <div key={index} className="bg-white/80 p-4 rounded-lg border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center space-x-3">
+                             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                               <Paperclip className="w-5 h-5 text-purple-600" />
+                             </div>
+                             <div>
+                               <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
+                               <p className="text-xs text-gray-500">{attachment.size}</p>
+                             </div>
+                           </div>
+                           <Button variant="outline" size="sm" className="text-xs border-purple-200 text-purple-600 hover:bg-purple-50" onClick={() => handleDownloadAttachment(attachment)}>
+                             Download
+                           </Button>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+               
+               {/* Action Buttons */}
+               <div className="space-y-3 mt-auto">
+                 <Button variant="outline" size="lg" className="w-full" onClick={handleEditTask}>
+                   <FileText className="w-4 h-4 mr-2" />
+                   Edit Task
+                 </Button>
+                 <Button size="lg" className="w-full bg-green-600 hover:bg-green-700" onClick={handleMarkComplete}>
+                   <CheckCircle className="w-4 h-4 mr-2" />
+                   Mark Complete
+                 </Button>
+               </div>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       {/* Edit Task Modal */}
+       <Dialog open={showEditTaskModal} onOpenChange={setShowEditTaskModal}>
+         <DialogContent className="max-w-2xl w-[80vw] max-h-[80vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle>Edit Task</DialogTitle>
+           </DialogHeader>
+           
+           <form onSubmit={(e) => {
+             e.preventDefault();
+             const formData = new FormData(e.currentTarget);
+             const updatedTask: ScheduleTask = {
+               ...selectedScheduleTask!,
+               title: formData.get('title') as string,
+               description: formData.get('description') as string,
+               time: formData.get('time') as string,
+               type: formData.get('type') as string,
+               urgent: formData.get('urgent') === 'on',
+             };
+             handleUpdateTask(updatedTask);
+           }}>
+             <div className="space-y-4">
+               <div>
+                 <label className="text-sm font-medium text-foreground">Task Title</label>
+                 <input 
+                   name="title"
+                   type="text" 
+                   className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   defaultValue={selectedScheduleTask?.title}
+                   required
+                 />
+               </div>
+               
+               <div>
+                 <label className="text-sm font-medium text-foreground">Description</label>
+                 <textarea 
+                   name="description"
+                   className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   rows={3}
+                   defaultValue={selectedScheduleTask?.description}
+                 />
+               </div>
+               
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <label className="text-sm font-medium text-foreground">Time</label>
+                   <input 
+                     name="time"
+                     type="time" 
+                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     defaultValue={selectedScheduleTask?.time}
+                     required
+                   />
+                 </div>
+                 <div>
+                   <label className="text-sm font-medium text-foreground">Type</label>
+                   <select 
+                     name="type"
+                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     defaultValue={selectedScheduleTask?.type}
+                     required
+                   >
+                     <option value="Meeting">Meeting</option>
+                     <option value="Review">Review</option>
+                     <option value="Finance">Finance</option>
+                     <option value="Design">Design</option>
+                   </select>
+                 </div>
+               </div>
+               
+               <div className="flex items-center space-x-2">
+                 <input 
+                   name="urgent"
+                   type="checkbox" 
+                   id="urgent" 
+                   className="rounded" 
+                   defaultChecked={selectedScheduleTask?.urgent} 
+                 />
+                 <label htmlFor="urgent" className="text-sm font-medium text-foreground">Mark as Urgent</label>
+               </div>
+               
+               <div className="flex space-x-2 pt-4 border-t">
+                 <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => setShowEditTaskModal(false)}>
+                   Cancel
+                 </Button>
+                 <Button type="submit" size="sm" className="flex-1">
+                   Save Changes
+                 </Button>
+               </div>
+             </div>
+           </form>
+         </DialogContent>
+       </Dialog>
     </TooltipProvider>
   );
 };

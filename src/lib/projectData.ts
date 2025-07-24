@@ -10,6 +10,7 @@ export interface Project {
   tasks: number;
   completedTasks: number;
   description?: string;
+  template?: string;
   projectTasks?: Array<{
     id: string;
     title: string;

@@ -12,6 +12,7 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userCompany, setUserCompany] = useState<Record<string, unknown> | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [selectedProjectFromSidebar, setSelectedProjectFromSidebar] = useState<Record<string, unknown> | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -90,6 +91,14 @@ const Index = () => {
               closeMobileSidebar();
             }
           }}
+          onProjectSelect={(project) => {
+            // Set the selected project and navigate to project overview
+            setSelectedProjectFromSidebar(project);
+            setActiveView('project-overview');
+            if (isMobile) {
+              closeMobileSidebar();
+            }
+          }}
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebar}
           isMobile={isMobile}
@@ -104,6 +113,7 @@ const Index = () => {
           onToggleSidebar={toggleSidebar}
           isMobile={isMobile}
           mobileSidebarOpen={mobileSidebarOpen}
+          selectedProjectFromSidebar={selectedProjectFromSidebar}
         />
       </div>
 

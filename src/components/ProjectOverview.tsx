@@ -7,9 +7,13 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KanbanBoard from "./KanbanBoard";
 import AddTaskModal from "./AddTaskModal";
+import CalendarView from "./CalendarView";
+import ProjectFiles from "./ProjectFiles";
+import ProjectTeam from "./ProjectTeam";
+import { Project } from "@/lib/projectData";
 
 interface ProjectOverviewProps {
-  project: any;
+  project: Project;
   onBack: () => void;
 }
 
@@ -254,33 +258,39 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
         </TabsContent>
 
         <TabsContent value="calendar">
-          <Card className="p-6">
-            <div className="text-center py-20">
-              <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Project Calendar</h3>
-              <p className="text-muted-foreground">Timeline and milestone view for this project</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Project Calendar</h3>
+              <Badge variant="outline" className="text-sm">
+                {project.name} Timeline
+              </Badge>
             </div>
-          </Card>
+            <CalendarView />
+          </div>
         </TabsContent>
 
         <TabsContent value="files">
-          <Card className="p-6">
-            <div className="text-center py-20">
-              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Project Files</h3>
-              <p className="text-muted-foreground">Documents, images, and other project assets</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Project Files</h3>
+              <Badge variant="outline" className="text-sm">
+                {project.name} Assets
+              </Badge>
             </div>
-          </Card>
+            <ProjectFiles projectId={project.id} projectName={project.name} />
+          </div>
         </TabsContent>
 
         <TabsContent value="team">
-          <Card className="p-6">
-            <div className="text-center py-20">
-              <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Team Management</h3>
-              <p className="text-muted-foreground">Manage team members, roles, and permissions</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Project Team</h3>
+              <Badge variant="outline" className="text-sm">
+                {project.name} Team
+              </Badge>
             </div>
-          </Card>
+            <ProjectTeam projectId={project.id} projectName={project.name} />
+          </div>
         </TabsContent>
       </Tabs>
 
