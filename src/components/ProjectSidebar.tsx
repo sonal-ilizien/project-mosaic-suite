@@ -122,6 +122,16 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, onProjectSelec
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
+              activeView === 'company-dashboard' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
+            }`}
+            onClick={() => onViewChange?.('company-dashboard')}
+          >
+            <Building className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
+            <span className="truncate font-medium">Company Dashboard</span>
+          </Button>
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
               activeView === 'kanban' ? 'bg-white/30 text-white hover:bg-white/40 shadow-xl border border-white/30 wave-active glow-border' : 'text-white/95 hover:bg-white/20 hover:text-black border border-transparent'
             }`}
             onClick={() => onViewChange?.('kanban')}

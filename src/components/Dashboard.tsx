@@ -415,7 +415,11 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
           <div className="flex flex-col sm:flex-row gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="lg" className="h-12 px-6 border-2 hover:border-blue-300 hover:bg-blue-50 hover:text-black transition-all duration-200">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="h-12 px-6 border-2 hover:border-blue-300 hover:bg-blue-50 hover:text-black transition-all duration-200 flex-1 min-w-0"
+                >
                   <Calendar className="w-5 h-5 mr-3" />
                   <span className="font-medium">Calendar View</span>
                 </Button>
@@ -427,7 +431,10 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6" size="lg">
+                <Button 
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 flex-1 min-w-0" 
+                  size="lg"
+                >
                   <BarChart3 className="w-5 h-5 mr-3" />
                   <span className="font-medium">Analytics</span>
                 </Button>
@@ -440,8 +447,14 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg"
-                  onClick={() => onProjectSelect && onProjectSelect({ type: 'templates' })}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6 flex-1 min-w-0"
+                  size="lg"
+                  onClick={() => {
+                    // Navigate to templates page
+                    if (onProjectSelect) {
+                      onProjectSelect({ type: 'templates' });
+                    }
+                  }}
                 >
                   <LayoutTemplate className="w-5 h-5 mr-3" />
                   <span className="font-medium">Templates</span>

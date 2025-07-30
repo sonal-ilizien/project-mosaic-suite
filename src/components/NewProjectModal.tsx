@@ -19,7 +19,8 @@ import {
   Sparkles,
   Star,
   Settings,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ComponentType } from "react";
+import { useToast } from "@/hooks/use-toast";
+import apiService from "@/services/apiService";
 
 interface Template {
   id: string;
@@ -59,6 +62,26 @@ interface Project {
   priority?: string;
 }
 
+interface CreateProjectPayload {
+  name: string;
+  description: string;
+  overview_doc: string;
+  template_id: number;
+  lead: number;
+  status: string;
+  start_date?: string;
+  end_date?: string;
+  labels: string[];
+  members: string[];
+}
+
+interface CreateMilestonePayload {
+  project: number;
+  name: string;
+  target_date: string;
+  status: string;
+}
+
 interface NewProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -68,6 +91,9 @@ interface NewProjectModalProps {
 }
 
 const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject, onProjectCreate }: NewProjectModalProps) => {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
   const [projectData, setProjectData] = useState({
     name: '',
     summary: '',
@@ -204,47 +230,165 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
     { id: 'feature', name: 'Feature', color: 'bg-yellow-500' }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // API Service Functions
+  const createProject = async (projectPayload: CreateProjectPayload) => {
+    try {
+      const response = await apiService.post('/projects/', projectPayload);
+      return response;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error;
+    }
+  };
+
+  const createMilestone = async (milestonePayload: CreateMilestonePayload) => {
+    try {
+      const response = await apiService.post('/projects/milestones/', milestonePayload);
+      return response;
+    } catch (error) {
+      console.error('Error creating milestone:', error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectData.name) {
       return;
     }
 
-    const newProject = {
+    setIsLoading(true);
+    try {
+      console.log('Submitting project with milestones:', projectData.milestones);
+      
+      // Prepare project payload
+      const projectPayload: CreateProjectPayload = {
+        name: projectData.name,
+        description: projectData.summary, // Short summary goes to description
+        overview_doc: projectData.description, // Description textarea goes to overview_doc
+        template_id: parseInt(projectData.template) || 1,
+        lead: parseInt(projectData.lead) || 1,
+        status: "Active",
+        start_date: projectData.startDate ? projectData.startDate.toISOString() : undefined,
+        end_date: projectData.targetDate ? projectData.targetDate.toISOString() : undefined,
+        labels: projectData.labels,
+        members: projectData.members
+      };
+
+      // Create project
+      const projectResponse = await createProject(projectPayload);
+      
+      // Extract project ID from the response structure
+      // API returns: { message: "Project created successfully!", data: { id: 7, ... } }
+      const projectId = projectResponse.data?.id || projectResponse.id || projectResponse.project_id;
+      
+      if (!projectId) {
+        throw new Error('Project ID not found in response');
+      }
+
+      // Create milestones if any exist
+      if (projectData.milestones.length > 0) {
+        console.log(`Creating ${projectData.milestones.length} milestones for project ${projectId}`);
+        for (const milestone of projectData.milestones) {
+          if (milestone.name && milestone.date) {
+            const milestonePayload: CreateMilestonePayload = {
+              project: projectId,
+              name: milestone.name,
+              target_date: format(milestone.date, 'yyyy-MM-dd'),
+              status: "Planned"
+            };
+            console.log('Creating milestone:', milestonePayload);
+            await createMilestone(milestonePayload);
+            console.log('Milestone created successfully');
+          }
+        }
+      }
+
+      // Show success toast with the message from API response
+      toast({
+        title: "Success",
+        description: projectResponse.message || "Project created successfully!",
+      });
+
+      onProjectCreate({
+        id: projectId.toString(),
+        name: projectData.name,
+        description: projectData.description,
+        template: projectData.template,
+        startDate: projectData.startDate,
+        endDate: projectData.targetDate,
+        team: projectData.members,
+        createdAt: new Date(),
+        status: 'active',
+        progress: 0
+      });
+
+      onOpenChange(false);
+      
+      // Reset form
+      setProjectData({
+        name: '',
+        summary: '',
+        description: '',
+        template: '',
+        priority: 'no-priority',
+        status: 'backlog',
+        lead: '',
+        members: [],
+        startDate: undefined,
+        targetDate: undefined,
+        labels: [],
+        milestones: []
+      });
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddMilestone = () => {
+    if (!milestoneName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a milestone name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add milestone to local state only
+    const newMilestone = {
       id: Date.now().toString(),
-      name: projectData.name,
-      description: projectData.description,
-      template: projectData.template || 'personal',
-      startDate: projectData.startDate,
-      endDate: projectData.targetDate,
-      team: projectData.members,
-      lead: projectData.lead,
-      milestones: projectData.milestones,
-      labels: projectData.labels,
-      priority: projectData.priority,
-      status: 'active',
-      createdAt: new Date(),
-      progress: 0
+      name: milestoneName,
+      date: milestoneDate,
+      completed: false
     };
 
-    onProjectCreate(newProject);
-    onOpenChange(false);
-    
-    // Reset form
-    setProjectData({
-      name: '',
-      summary: '',
-      description: '',
-      template: '',
-      priority: 'no-priority',
-      status: 'backlog',
-      lead: '',
-      members: [],
-      startDate: undefined,
-      targetDate: undefined,
-      labels: [],
-      milestones: []
+    console.log('Adding milestone to local state:', newMilestone);
+    setProjectData(prev => {
+      const updatedMilestones = [...prev.milestones, newMilestone];
+      console.log('Updated milestones:', updatedMilestones);
+      return {
+        ...prev,
+        milestones: updatedMilestones
+      };
     });
+
+    toast({
+      title: "Success",
+      description: "Milestone added to project!",
+    });
+
+    // Reset milestone inputs
+    setMilestoneName('');
+    setMilestoneDate(undefined);
+    setShowMilestoneInput(false);
   };
 
   return (
@@ -362,7 +506,7 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20">
+                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20 hover:text-black">
                         <UserPlus className="w-4 h-4 mr-2" />
                         {projectData.members.length > 0 ? `${projectData.members.length} Members` : 'Members'}
                       </Button>
@@ -412,7 +556,7 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20">
+                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20 hover:text-black">
                         <Calendar className="w-4 h-4 mr-2" />
                         {projectData.startDate ? format(projectData.startDate, 'MMM dd') : 'Start'}
                         {projectData.startDate && (
@@ -439,7 +583,7 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20">
+                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20 hover:text-black">
                         <Target className="w-4 h-4 mr-2" />
                         {projectData.targetDate ? format(projectData.targetDate, 'MMM dd') : 'Target'}
                         {projectData.targetDate && (
@@ -466,7 +610,7 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20">
+                      <Button variant="outline" size="sm" className="text-sm h-9 px-3 bg-white border-gray-200 hover:border-gray-300 hover:bg-primary/20 hover:text-black">
                         <Tag className="w-4 h-4 mr-2" />
                         {projectData.labels.length > 0 ? `${projectData.labels.length} Labels` : 'Labels'}
                       </Button>
@@ -603,25 +747,7 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
                         variant="ghost" 
                         size="sm" 
                         className="text-gray-400 hover:text-gray-600 p-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (milestoneName.trim()) {
-                            const newMilestone = {
-                              id: Date.now().toString(),
-                              name: milestoneName,
-                              date: milestoneDate,
-                              completed: false
-                            };
-                            setProjectData(prev => ({
-                              ...prev,
-                              milestones: [...prev.milestones, newMilestone]
-                            }));
-                            setMilestoneName('');
-                            setMilestoneDate(undefined);
-                          }
-                          setShowMilestoneInput(false);
-                        }}
+                        onClick={handleAddMilestone}
                       >
                         <Plus className="w-5 h-5" />
                       </Button>
@@ -692,9 +818,13 @@ const NewProjectModal = ({ open, onOpenChange, selectedTemplate, editingProject,
                 <Button 
                   type="submit" 
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:bg-primary/20 text-white px-6 shadow-lg"
-                  disabled={!projectData.name}
+                  disabled={!projectData.name || isLoading}
                 >
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
                   {editingProject ? 'Update project' : 'Create project'}
                 </Button>
               </div>

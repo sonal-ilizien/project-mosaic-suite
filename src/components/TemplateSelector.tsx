@@ -6,6 +6,7 @@ import {
   Anchor, 
   CheckCircle, 
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Building,
   TrendingUp,
@@ -13,24 +14,33 @@ import {
   UserCheck,
   Briefcase,
   GraduationCap,
-  Rocket
+  Rocket,
+  Plus
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import NewProjectModal from "./NewProjectModal";
+import CreateTemplateModal from "./CreateTemplateModal";
 import { useProjects } from "../contexts/ProjectContext";
+import apiService from "../services/apiService";
+import { useToast } from "@/hooks/use-toast";
 
 const TemplateSelector = ({ 
   onBrowseTemplates, 
-  onProjectCreate 
+  onProjectCreate,
+  onBackToDashboard
 }: { 
   onBrowseTemplates?: () => void;
   onProjectCreate?: (project: any) => void;
+  onBackToDashboard?: () => void;
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
+  const [creatingTemplate, setCreatingTemplate] = useState(false);
   const { addProject } = useProjects();
+  const { toast } = useToast();
 
   const templates = [
     {
@@ -165,24 +175,85 @@ const TemplateSelector = ({
     }
   };
 
+  const handleCreateTemplate = async (templateData: {
+    name: string;
+    category: string;
+    domain: string;
+    description: string;
+    json_structure: { ideal: string };
+    metadata: { estimated_duration: string; team_size: string };
+    tags: string[];
+  }) => {
+    setCreatingTemplate(true);
+    try {
+      const payload = {
+        name: templateData.name,
+        category: templateData.category,
+        domain: templateData.domain,
+        description: templateData.description,
+        json_structure: templateData.json_structure,
+        metadata: templateData.metadata,
+        tags: templateData.tags
+      };
+
+      await apiService.post('/templates/', payload);
+      
+      toast({
+        title: "Success",
+        description: "Template created successfully!",
+        variant: "default",
+      });
+      
+      setShowCreateTemplateModal(false);
+    } catch (error) {
+      console.error('Error creating template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create template. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingTemplate(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto overflow-y-auto h-full force-scrollbar">
       {/* Header */}
       <div className="text-center mb-10">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center justify-center flex-1">
-            <Sparkles className="w-8 h-8 text-primary mr-3" />
-            <h1 className="text-4xl font-bold text-foreground">Choose Your Template</h1>
-          </div>
           <Button 
             variant="outline" 
             size="lg"
             className="px-6"
-            onClick={onBrowseTemplates}
+            onClick={onBackToDashboard}
           >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Browse Examples
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
           </Button>
+          <div className="flex items-center justify-center flex-1">
+            <Sparkles className="w-8 h-8 text-primary mr-3" />
+            <h1 className="text-4xl font-bold text-foreground">Choose Your Template</h1>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="px-6"
+              onClick={onBrowseTemplates}
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Browse Examples
+            </Button>
+            <Button 
+              size="lg"
+              className="px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              onClick={() => setShowCreateTemplateModal(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Template
+            </Button>
+          </div>
         </div>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Select a pre-configured template to get started quickly, or customize your own workflow
@@ -304,6 +375,14 @@ const TemplateSelector = ({
             onProjectCreate(project);
           }
         }}
+      />
+
+      {/* Create Template Modal */}
+      <CreateTemplateModal
+        open={showCreateTemplateModal}
+        onOpenChange={setShowCreateTemplateModal}
+        onSubmit={handleCreateTemplate}
+        isCreating={creatingTemplate}
       />
     </div>
   );

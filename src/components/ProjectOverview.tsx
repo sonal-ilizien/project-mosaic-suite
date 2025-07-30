@@ -15,9 +15,10 @@ import { Project } from "@/lib/projectData";
 interface ProjectOverviewProps {
   project: Project;
   onBack: () => void;
+  onNavigateToAgile?: () => void;
 }
 
-const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
+const ProjectOverview = ({ project, onBack, onNavigateToAgile }: ProjectOverviewProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
@@ -112,6 +113,15 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
         <div className="flex items-center space-x-2">
           <Badge variant="outline">{project.template}</Badge>
           <Badge className="bg-success text-white">Active</Badge>
+          {project.template === 'agile' && onNavigateToAgile && (
+            <Button 
+              onClick={onNavigateToAgile}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Agile Dashboard
+            </Button>
+          )}
         </div>
       </div>
 

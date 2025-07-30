@@ -1263,7 +1263,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     </Button>
                   
                   {showDisplaySettings && (
-                                        <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50 p-4">
+                                        <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-4 transform-gpu">
                     <div className="space-y-4">
                         {/* View Type Section */}
                       <div>

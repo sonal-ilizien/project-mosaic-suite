@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Users, 
   UserPlus, 
@@ -16,7 +16,8 @@ import {
   Heart,
   X,
   Clock,
-  Video
+  Video,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,43 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  CommonDialog, 
+  CommonInput, 
+  CommonTextarea, 
+  CommonSelect, 
+  CommonCheckbox, 
+  CommonButton, 
+  CommonSectionHeader, 
+  CommonFormGrid, 
+  CommonFormActions,
+  CommonTags
+} from "@/components/ui/common-dialog";
+import apiService from "../services/apiService";
+import { useToast } from "@/hooks/use-toast";
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+  permissions: Record<string, boolean>;
+  is_default: boolean;
+}
+
+interface NewRole {
+  name: string;
+  description: string;
+  permissions: {
+    can_invite_users: boolean;
+    can_manage_users: boolean;
+    can_manage_projects: boolean;
+    can_view_all_projects: boolean;
+    can_manage_organization: boolean;
+    can_review_code: boolean;
+  };
+}
 
 interface TeamMember {
   id: string;
@@ -57,12 +95,29 @@ interface TeamMember {
 }
 
 const Team = () => {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [showScheduleMeetingDialog, setShowScheduleMeetingDialog] = useState(false);
   const [showMemberDetailsDialog, setShowMemberDetailsDialog] = useState(false);
+  const [showAddRoleDialog, setShowAddRoleDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [creatingRole, setCreatingRole] = useState(false);
+  const [newRole, setNewRole] = useState<NewRole>({
+    name: '',
+    description: '',
+    permissions: {
+      can_invite_users: false,
+      can_manage_users: false,
+      can_manage_projects: false,
+      can_view_all_projects: false,
+      can_manage_organization: false,
+      can_review_code: false
+    }
+  });
   const [meetingDetails, setMeetingDetails] = useState({
     title: '',
     date: '',
@@ -72,15 +127,134 @@ const Team = () => {
     description: ''
   });
   const [newMember, setNewMember] = useState({
-    name: '',
-    role: '',
     email: '',
-    phone: '',
-    location: '',
-    assignedProjects: [] as string[],
-    completedProjects: 0,
-    skills: [] as string[]
+    first_name: '',
+    last_name: '',
+    role: '',
+    message: 'Welcome to our team! Please join us.'
   });
+
+  // Fetch roles when component mounts
+  useEffect(() => {
+    const fetchRoles = async () => {
+      setLoadingRoles(true);
+      try {
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+          throw new Error('User data not found');
+        }
+        
+        const user = JSON.parse(userData);
+        const organizationId = user.organization?.id;
+        
+        if (!organizationId) {
+          throw new Error('Organization ID not found');
+        }
+        
+        const response = await apiService.get(`/accounts/roles/?organization=${organizationId}`);
+        console.log('Fetched roles:', response); // Debug log
+        setRoles(response?.data || []);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load roles. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    fetchRoles();
+  }, [toast]);
+
+  // Handle role creation
+  const handleCreateRole = async () => {
+    if (!newRole.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Role name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCreatingRole(true);
+    try {
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        throw new Error('User data not found');
+      }
+      
+      const user = JSON.parse(userData);
+      const organizationId = user.organization?.id;
+      
+      if (!organizationId) {
+        throw new Error('Organization ID not found');
+      }
+
+      const roleData = {
+        ...newRole,
+        organization: organizationId
+      };
+
+      const response = await apiService.post('/accounts/roles/', roleData);
+      toast({
+        title: "Success",
+        description: "Role created successfully!",
+        variant: "default",
+      });
+      
+      // Refresh roles list
+      const rolesResponse = await apiService.get(`/accounts/roles/?organization=${organizationId}`);
+      const updatedRoles = rolesResponse?.data || [];
+      setRoles(updatedRoles);
+      
+      // Auto-select the newly created role
+      const createdRole = updatedRoles.find(role => role.name === newRole.name);
+      if (createdRole) {
+        setNewMember(prev => ({...prev, role: createdRole.name}));
+      }
+      
+      // Reset form and close dialog
+      setNewRole({
+        name: '',
+        description: '',
+        permissions: {
+          can_invite_users: false,
+          can_manage_users: false,
+          can_manage_projects: false,
+          can_view_all_projects: false,
+          can_manage_organization: false,
+          can_review_code: false
+        }
+      });
+      setShowAddRoleDialog(false);
+    } catch (error) {
+      console.error('Error creating role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create role. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingRole(false);
+    }
+  };
+
+  // Handle permission toggle
+  const handlePermissionToggle = (permission: keyof NewRole['permissions']) => {
+    setNewRole(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [permission]: !prev.permissions[permission]
+      }
+    }));
+  };
+
+
 
   // Updated Team Members with Indian names and backend/frontend developers and designers
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
@@ -178,35 +352,59 @@ const Team = () => {
     return 'text-red-600';
   };
 
-  const handleAddMember = () => {
-    if (newMember.name && newMember.role && newMember.email) {
-      const member: TeamMember = {
-        id: (teamMembers.length + 1).toString(),
-        name: newMember.name,
-        role: newMember.role,
-        email: newMember.email,
-        phone: newMember.phone,
-        location: newMember.location,
-        avatar: `/avatars/${newMember.name.toLowerCase().replace(' ', '_')}.jpg`,
-        status: 'online',
-        joinDate: new Date().toISOString().split('T')[0],
-        skills: newMember.skills,
-        performance: Math.floor(Math.random() * 20) + 80, // Random performance between 80-100
-        projects: newMember.completedProjects // Use the completed projects count
-      };
-      
-      setTeamMembers([...teamMembers, member]);
-      setNewMember({
-        name: '',
-        role: '',
-        email: '',
-        phone: '',
-        location: '',
-        assignedProjects: [],
-        completedProjects: 0,
-        skills: []
+  const handleAddMember = async () => {
+    if (newMember.email && newMember.first_name && newMember.last_name && newMember.role) {
+      try {
+        // Find the selected role to get its ID
+        const selectedRole = roles.find(role => role.name === newMember.role);
+        if (!selectedRole) {
+          toast({
+            title: "Error",
+            description: "Please select a valid role.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const invitationData = {
+          email: newMember.email,
+          first_name: newMember.first_name,
+          last_name: newMember.last_name,
+          role: selectedRole.id,
+          message: newMember.message
+        };
+
+        const response = await apiService.post('/accounts/invitations/', invitationData);
+        
+        toast({
+          title: "Success",
+          description: "Team member invitation sent successfully!",
+          variant: "default",
+        });
+
+        // Reset form
+        setNewMember({
+          email: '',
+          first_name: '',
+          last_name: '',
+          role: '',
+          message: 'Welcome to our team! Please join us.'
+        });
+        setShowAddMemberDialog(false);
+      } catch (error) {
+        console.error('Error sending invitation:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send invitation. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
       });
-      setShowAddMemberDialog(false);
     }
   };
 
@@ -266,242 +464,125 @@ const Team = () => {
           <h1 className="text-3xl font-bold text-foreground">Team Management</h1>
           <p className="text-muted-foreground mt-1">Manage your team members and their roles</p>
         </div>
-        <Dialog open={showAddMemberDialog} onOpenChange={setShowAddMemberDialog}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Team Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w-4xl h-[90vh] overflow-y-auto">
-            <DialogHeader className="pb-4">
-              <DialogTitle className="text-2xl font-bold text-foreground">Add New Team Member</DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                Fill in the details to add a new team member to your project. Fields marked with * are required.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 py-6">
+        <Button 
+          onClick={() => setShowAddMemberDialog(true)}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          Add Team Member
+        </Button>
+
+        <CommonDialog
+          open={showAddMemberDialog}
+          onOpenChange={setShowAddMemberDialog}
+          title="Add New Team Member"
+          subtitle="Fill in the details to add a new team member to your project. Fields marked with * are required."
+          icon={UserPlus}
+          maxWidth="max-w-7xl"
+        >
+                      <div className="space-y-8">
               {/* Personal Information Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Personal Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium text-foreground">
-                      Full Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      value={newMember.name}
-                      onChange={(e) => setNewMember({...newMember, name: e.target.value})}
-                      placeholder="Enter full name"
-                      className="h-11 border-2 focus:border-primary transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm font-medium text-foreground">
-                      Role *
-                    </Label>
-                    <Select value={newMember.role} onValueChange={(value) => setNewMember({...newMember, role: value})}>
-                      <SelectTrigger className="h-11 border-2 focus:border-primary transition-colors">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Frontend Developer">Frontend Developer</SelectItem>
-                        <SelectItem value="Backend Developer">Backend Developer</SelectItem>
-                        <SelectItem value="UI/UX Designer">UI/UX Designer</SelectItem>
-                        <SelectItem value="Project Manager">Project Manager</SelectItem>
-                        <SelectItem value="DevOps Engineer">DevOps Engineer</SelectItem>
-                        <SelectItem value="Product Owner">Product Owner</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <CommonSectionHeader title="Personal Information" icon={Users} />
+                  <CommonButton
+                    onClick={() => setShowAddRoleDialog(true)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add New Role
+                  </CommonButton>
                 </div>
+                <CommonFormGrid cols={2}>
+                  <CommonInput
+                    id="first_name"
+                    label="First Name"
+                    value={newMember.first_name}
+                    onChange={(value) => setNewMember({...newMember, first_name: value})}
+                    placeholder="Enter first name"
+                    required
+                  />
+                  <CommonInput
+                    id="last_name"
+                    label="Last Name"
+                    value={newMember.last_name}
+                    onChange={(value) => setNewMember({...newMember, last_name: value})}
+                    placeholder="Enter last name"
+                    required
+                  />
+                </CommonFormGrid>
               </div>
 
               {/* Contact Information Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Contact Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                      Email Address *
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newMember.email}
-                      onChange={(e) => setNewMember({...newMember, email: e.target.value})}
-                      placeholder="email@company.com"
-                      className="h-11 border-2 focus:border-primary transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      value={newMember.phone}
-                      onChange={(e) => setNewMember({...newMember, phone: e.target.value})}
-                      placeholder="+91 98765 43210"
-                      className="h-11 border-2 focus:border-primary transition-colors"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium text-foreground">
-                      Location
-                    </Label>
-                    <Input
-                      id="location"
-                      value={newMember.location}
-                      onChange={(e) => setNewMember({...newMember, location: e.target.value})}
-                      placeholder="City, State"
-                      className="h-11 border-2 focus:border-primary transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="completedProjects" className="text-sm font-medium text-foreground">
-                      Completed Projects
-                    </Label>
-                    <Input
-                      id="completedProjects"
-                      type="number"
-                      value={newMember.completedProjects}
-                      onChange={(e) => setNewMember({...newMember, completedProjects: parseInt(e.target.value) || 0})}
-                      placeholder="0"
-                      className="h-11 border-2 focus:border-primary transition-colors"
-                    />
-                  </div>
-                </div>
+              <div className="space-y-6">
+                <CommonSectionHeader title="Contact Information" icon={Mail} />
+                <CommonFormGrid cols={2}>
+                  <CommonInput
+                    id="email"
+                    label="Email Address"
+                    value={newMember.email}
+                    onChange={(value) => setNewMember({...newMember, email: value})}
+                    placeholder="email@company.com"
+                    type="email"
+                    required
+                  />
+                  <CommonSelect
+                    id="role"
+                    label="Role"
+                    value={newMember.role}
+                    onValueChange={(value) => setNewMember({...newMember, role: value})}
+                    placeholder={loadingRoles ? "Loading roles..." : "Select role"}
+                    required
+                    disabled={loadingRoles}
+                    options={
+                      loadingRoles 
+                        ? [{ value: "", label: "Loading roles..." }]
+                        : roles.length === 0 
+                          ? [{ value: "", label: "No roles available" }]
+                          : roles.map(role => ({ value: role.name, label: role.name }))
+                    }
+                  />
+                </CommonFormGrid>
               </div>
 
-              {/* Project Assignment Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Project Assignment</h3>
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Assign projects to this team member:</p>
-                  <div className="bg-muted/30 rounded-lg p-4 border-2 border-dashed border-muted-foreground/20">
-                    <div className="flex flex-wrap gap-3 max-h-32 overflow-y-auto">
-                      {['Project Alpha', 'Project Beta', 'Project Gamma', 'Project Delta', 'Project Echo', 'Project Zeta', 'Project Omega'].map((project) => (
-                        <Badge
-                          key={project}
-                          variant={newMember.assignedProjects.includes(project) ? "default" : "outline"}
-                          className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
-                            newMember.assignedProjects.includes(project) 
-                              ? "bg-primary text-primary-foreground shadow-md" 
-                              : "hover:bg-primary/10 hover:border-primary/50"
-                          }`}
-                          onClick={() => {
-                            if (newMember.assignedProjects.includes(project)) {
-                              setNewMember({
-                                ...newMember,
-                                assignedProjects: newMember.assignedProjects.filter(p => p !== project)
-                              });
-                            } else {
-                              setNewMember({
-                                ...newMember,
-                                assignedProjects: [...newMember.assignedProjects, project]
-                              });
-                            }
-                          }}
-                        >
-                          {project}
-                        </Badge>
-                      ))}
-                    </div>
-                    {newMember.assignedProjects.length > 0 && (
-                      <div className="mt-4 pt-3 border-t border-muted-foreground/20">
-                        <p className="text-sm font-medium text-foreground mb-2">Assigned Projects ({newMember.assignedProjects.length}):</p>
-                        <div className="flex flex-wrap gap-2">
-                          {newMember.assignedProjects.map((project) => (
-                            <Badge key={project} variant="default" className="bg-primary text-primary-foreground">
-                              {project}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Skills Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Skills & Expertise</h3>
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Select the skills that apply to this team member:</p>
-                  <div className="bg-muted/30 rounded-lg p-4 border-2 border-dashed border-muted-foreground/20">
-                    <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto">
-                      {availableSkills.map((skill) => (
-                        <Badge
-                          key={skill}
-                          variant={newMember.skills.includes(skill) ? "default" : "outline"}
-                          className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
-                            newMember.skills.includes(skill) 
-                              ? "bg-primary text-primary-foreground shadow-md" 
-                              : "hover:bg-primary/10 hover:border-primary/50"
-                          }`}
-                          onClick={() => {
-                            if (newMember.skills.includes(skill)) {
-                              setNewMember({
-                                ...newMember,
-                                skills: newMember.skills.filter(s => s !== skill)
-                              });
-                            } else {
-                              setNewMember({
-                                ...newMember,
-                                skills: [...newMember.skills, skill]
-                              });
-                            }
-                          }}
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                    {newMember.skills.length > 0 && (
-                      <div className="mt-4 pt-3 border-t border-muted-foreground/20">
-                        <p className="text-sm font-medium text-foreground mb-2">Selected Skills ({newMember.skills.length}):</p>
-                        <div className="flex flex-wrap gap-2">
-                          {newMember.skills.map((skill) => (
-                            <Badge key={skill} variant="default" className="bg-primary text-primary-foreground">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {/* Message Section */}
+              <div className="space-y-6">
+                <CommonSectionHeader title="Invitation Message" icon={Mail} />
+                <CommonTextarea
+                  id="message"
+                  label="Welcome Message"
+                  value={newMember.message}
+                  onChange={(value) => setNewMember({...newMember, message: value})}
+                  placeholder="Enter a welcome message for the new team member..."
+                  rows={4}
+                />
               </div>
             </div>
-            <DialogFooter className="pt-6 border-t border-border">
-              <div className="flex items-center justify-between w-full">
-                <p className="text-sm text-muted-foreground">
-                  {newMember.name && newMember.role && newMember.email ? 'Ready to add team member' : 'Please fill in required fields'}
-                </p>
-                <div className="flex items-center gap-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowAddMemberDialog(false)}
-                    className="px-6 py-2"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleAddMember} 
-                    disabled={!newMember.name || !newMember.role || !newMember.email}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                  >
-                    Add Team Member
-                  </Button>
-                </div>
+
+          <CommonFormActions>
+            <div className="flex items-center justify-between w-full">
+              <p className="text-sm text-gray-600">
+                {newMember.email && newMember.first_name && newMember.last_name && newMember.role ? 'Ready to send invitation' : 'Please fill in required fields'}
+              </p>
+              <div className="flex items-center gap-3">
+                <CommonButton
+                  variant="outline"
+                  onClick={() => setShowAddMemberDialog(false)}
+                >
+                  Cancel
+                </CommonButton>
+                <CommonButton
+                  onClick={handleAddMember}
+                  disabled={!newMember.email || !newMember.first_name || !newMember.last_name || !newMember.role}
+                >
+                  Send Invitation
+                </CommonButton>
               </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </div>
+          </CommonFormActions>
+        </CommonDialog>
 
         {/* Schedule Meeting Dialog */}
         <Dialog open={showScheduleMeetingDialog} onOpenChange={setShowScheduleMeetingDialog}>
@@ -1030,6 +1111,111 @@ const Team = () => {
           <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
         </div>
       )}
+
+      {/* Add New Role Dialog */}
+      <CommonDialog
+        open={showAddRoleDialog}
+        onOpenChange={setShowAddRoleDialog}
+        title="Create New Role"
+        subtitle="Create a new role with specific permissions for your organization."
+        icon={Shield}
+        maxWidth="max-w-4xl"
+      >
+        <div className="space-y-8">
+          {/* Role Name */}
+          <CommonInput
+            id="roleName"
+            label="Role Name"
+            value={newRole.name}
+            onChange={(value) => setNewRole({...newRole, name: value})}
+            placeholder="e.g., Senior Developer"
+            required
+          />
+
+          {/* Role Description */}
+          <CommonTextarea
+            id="roleDescription"
+            label="Description"
+            value={newRole.description}
+            onChange={(value) => setNewRole({...newRole, description: value})}
+            placeholder="Describe the role and its responsibilities..."
+            required
+            rows={4}
+          />
+
+          {/* Permissions */}
+          <div className="space-y-6">
+            <CommonSectionHeader title="Permissions" icon={Shield} />
+            <CommonFormGrid cols={2}>
+              <CommonCheckbox
+                id="can_invite_users"
+                label="Can Invite Users"
+                checked={newRole.permissions.can_invite_users}
+                onCheckedChange={() => handlePermissionToggle('can_invite_users')}
+              />
+              
+              <CommonCheckbox
+                id="can_manage_users"
+                label="Can Manage Users"
+                checked={newRole.permissions.can_manage_users}
+                onCheckedChange={() => handlePermissionToggle('can_manage_users')}
+              />
+              
+              <CommonCheckbox
+                id="can_manage_projects"
+                label="Can Manage Projects"
+                checked={newRole.permissions.can_manage_projects}
+                onCheckedChange={() => handlePermissionToggle('can_manage_projects')}
+              />
+              
+              <CommonCheckbox
+                id="can_view_all_projects"
+                label="Can View All Projects"
+                checked={newRole.permissions.can_view_all_projects}
+                onCheckedChange={() => handlePermissionToggle('can_view_all_projects')}
+              />
+              
+              <CommonCheckbox
+                id="can_manage_organization"
+                label="Can Manage Organization"
+                checked={newRole.permissions.can_manage_organization}
+                onCheckedChange={() => handlePermissionToggle('can_manage_organization')}
+              />
+              
+              <CommonCheckbox
+                id="can_review_code"
+                label="Can Review Code"
+                checked={newRole.permissions.can_review_code}
+                onCheckedChange={() => handlePermissionToggle('can_review_code')}
+              />
+            </CommonFormGrid>
+          </div>
+        </div>
+
+        <CommonFormActions>
+          <div className="flex items-center justify-between w-full">
+            <p className="text-sm text-gray-600">
+              {newRole.name.trim() ? 'Ready to create role' : 'Please enter a role name'}
+            </p>
+            <div className="flex items-center gap-3">
+              <CommonButton
+                variant="outline"
+                onClick={() => setShowAddRoleDialog(false)}
+                disabled={creatingRole}
+              >
+                Cancel
+              </CommonButton>
+              <CommonButton
+                onClick={handleCreateRole}
+                disabled={creatingRole || !newRole.name.trim()}
+                loading={creatingRole}
+              >
+                {creatingRole ? "Creating..." : "Create Role"}
+              </CommonButton>
+            </div>
+          </div>
+        </CommonFormActions>
+      </CommonDialog>
     </div>
   );
 };

@@ -19,7 +19,18 @@ const Index = () => {
     // Check if user has completed onboarding
     const companyData = localStorage.getItem('userCompany');
     if (!companyData) {
-      setShowOnboarding(true);
+      // Set a default company data to prevent the popup from showing
+      const defaultCompanyData = {
+        mode: 'create',
+        companyName: 'Default Company',
+        description: 'Default company workspace',
+        industry: 'Technology',
+        size: '1-10 employees',
+        userRole: 'admin',
+        department: 'General'
+      };
+      localStorage.setItem('userCompany', JSON.stringify(defaultCompanyData));
+      setUserCompany(defaultCompanyData);
     } else {
       setUserCompany(JSON.parse(companyData));
     }
@@ -114,6 +125,12 @@ const Index = () => {
           isMobile={isMobile}
           mobileSidebarOpen={mobileSidebarOpen}
           selectedProjectFromSidebar={selectedProjectFromSidebar}
+          onViewChange={(view) => {
+            setActiveView(view);
+            if (isMobile) {
+              closeMobileSidebar();
+            }
+          }}
         />
       </div>
 

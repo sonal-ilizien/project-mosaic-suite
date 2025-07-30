@@ -34,8 +34,11 @@ import NewProjectModal from "./NewProjectModal";
 import TemplateGallery from "./TemplateGallery";
 import AddTaskModal from "./AddTaskModal";
 import Team from "./Team";
+import UserProfileDropdown from "./UserProfileDropdown";
+import AgileTestDashboard from "./AgileTestDashboard";
+import CompanyDashboard from "./CompanyDashboard";
 
-type ViewType = 'dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview' | 'chart-config' | 'template-comparison' | 'whiteboard' | 'team';
+type ViewType = 'dashboard' | 'company-dashboard' | 'kanban' | 'list' | 'calendar' | 'templates' | 'analytics' | 'project-overview' | 'chart-config' | 'template-comparison' | 'whiteboard' | 'team' | 'agile-dashboard';
 
 interface ViewSelectorProps {
   activeView?: string;
@@ -44,6 +47,7 @@ interface ViewSelectorProps {
   isMobile?: boolean;
   mobileSidebarOpen?: boolean;
   selectedProjectFromSidebar?: Record<string, unknown> | null;
+  onViewChange?: (view: string) => void;
 }
 
 const ViewSelector = ({ 
@@ -52,9 +56,15 @@ const ViewSelector = ({
   onToggleSidebar,
   isMobile = false,
   mobileSidebarOpen = false,
-  selectedProjectFromSidebar
+  selectedProjectFromSidebar,
+  onViewChange
 }: ViewSelectorProps) => {
   const [activeView, setActiveView] = useState<ViewType>((propActiveView as ViewType) || 'dashboard');
+
+  const setActiveViewAndNotify = (view: ViewType) => {
+    setActiveView(view);
+    onViewChange?.(view);
+  };
 
   useEffect(() => {
     if (propActiveView && propActiveView !== activeView) {
@@ -66,7 +76,7 @@ const ViewSelector = ({
   useEffect(() => {
     if (selectedProjectFromSidebar) {
       setSelectedProject(selectedProjectFromSidebar);
-      setActiveView('project-overview');
+      setActiveViewAndNotify('project-overview');
     }
   }, [selectedProjectFromSidebar]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,19 +87,11 @@ const ViewSelector = ({
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [tasks, setTasks] = useState<unknown[]>([]);
 
-  const views = [
-    { id: 'dashboard', name: 'Dashboard', icon: BarChart3, description: 'Overview & Analytics' },
-    { id: 'kanban', name: 'Kanban', icon: LayoutGrid, description: 'Visual Task Board' },
-    { id: 'list', name: 'List', icon: List, description: 'Detailed Task List' },
-    { id: 'calendar', name: 'Calendar', icon: Calendar, description: 'Timeline View' },
-    { id: 'templates', name: 'Templates', icon: Filter, description: 'Project Templates' },
-    { id: 'analytics', name: 'Analytics', icon: BarChart3, description: 'Charts & Reports' },
-    { id: 'team', name: 'Team', icon: User, description: 'Team Management' }
-  ];
+
 
   const handleProjectCreate = (project: any) => {
     setSelectedProject(project);
-    setActiveView('project-overview');
+    setActiveViewAndNotify('project-overview');
   };
 
   const handleTemplateSelect = (template: any) => {
@@ -112,28 +114,31 @@ const ViewSelector = ({
             // Check if this is a navigation request (like "View All")
             if (project && typeof project === 'object' && 'type' in project) {
               if (project.type === 'list') {
-                setActiveView('list');
+                setActiveViewAndNotify('list');
                 return;
               } else if (project.type === 'templates') {
-                setActiveView('templates');
+                setActiveViewAndNotify('templates');
                 return;
               }
             }
             // Otherwise, treat as project selection for overview
             setSelectedProject(project as Record<string, unknown>);
-            setActiveView('project-overview');
+            setActiveViewAndNotify('project-overview');
           }} />;
+      case 'company-dashboard':
+        return <CompanyDashboard />;
       case 'kanban':
         return <KanbanBoard />;
       case 'templates':
         return <TemplateSelector 
           onBrowseTemplates={handleBrowseTemplates} 
           onProjectCreate={handleProjectCreate}
+          onBackToDashboard={() => setActiveViewAndNotify('dashboard')}
         />;
       case 'list':
         return <ListView onProjectSelect={(project) => {
           setSelectedProject(project as unknown as Record<string, unknown>);
-          setActiveView('project-overview');
+          setActiveViewAndNotify('project-overview');
         }} />;
       case 'calendar':
         return <CalendarView />;
@@ -150,8 +155,17 @@ const ViewSelector = ({
       case 'project-overview':
         return selectedProject ? (
           <ProjectOverview 
-            project={selectedProject} 
-            onBack={() => setActiveView('dashboard')} 
+            project={selectedProject as any} 
+            onBack={() => setActiveViewAndNotify('dashboard')} 
+            onNavigateToAgile={() => setActiveViewAndNotify('agile-dashboard')}
+          />
+        ) : <Dashboard />;
+      case 'agile-dashboard':
+        return selectedProject ? (
+          <AgileTestDashboard 
+            projectId={(selectedProject as any).id || 1} 
+            projectName={(selectedProject as any).name || 'Agile Project'} 
+            onBack={() => setActiveViewAndNotify('project-overview')}
           />
         ) : <Dashboard />;
       default:
@@ -190,13 +204,13 @@ const ViewSelector = ({
                 )}
                 
                 {/* Search Bar */}
-                <div className="relative flex-1">
+                <div className="relative flex-1 max-w-xs">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Search projects, tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-full glow-border bg-background text-foreground"
+                    className="pl-9 w-full bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 focus:ring-blue-500 focus:ring-1"
                   />
                 </div>
               </div>
@@ -232,12 +246,14 @@ const ViewSelector = ({
                     <p>Filter Options</p>
                   </TooltipContent>
                 </Tooltip>
+                
+                <UserProfileDropdown />
               </div>
             </div>
 
             {/* Desktop Layout */}
             <div className="hidden sm:flex items-center justify-between w-full">
-              {/* Left side with view tabs */}
+              {/* Left side - Sidebar Toggle */}
               <div className="flex items-center space-x-2 flex-shrink-0">
                 {/* Sidebar Toggle Button for Desktop/Medium when collapsed */}
                 {sidebarCollapsed && onToggleSidebar && (
@@ -251,25 +267,7 @@ const ViewSelector = ({
                   </Button>
                 )}
                 
-                {/* View Tabs */}
-                <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide">
-                  {views.map((view) => (
-                    <Button
-                      key={view.id}
-                      variant={activeView === view.id ? "default" : "ghost"}
-                      size="sm"
-                      className={`flex-shrink-0 transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${
-                        activeView === view.id 
-                          ? "bg-primary text-primary-foreground shadow-xl border border-primary/40 font-medium wave-active glow-border" 
-                          : "text-foreground hover:bg-accent hover:text-accent-foreground border border-transparent"
-                      }`}
-                      onClick={() => setActiveView(view.id as ViewType)}
-                    >
-                      <view.icon className="w-4 h-4 mr-2 transition-transform group-hover:scale-110 icon-animated" />
-                      <span className="font-medium">{view.name}</span>
-                    </Button>
-                  ))}
-                </div>
+
               </div>
               
               {/* Right side - Search and Action Buttons */}
@@ -281,7 +279,7 @@ const ViewSelector = ({
                     placeholder="Search projects, tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-64 bg-background border-border text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-primary glow-border"
+                    className="pl-9 w-56 bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 focus:ring-blue-500 focus:ring-1"
                   />
                 </div>
                 
@@ -317,20 +315,7 @@ const ViewSelector = ({
                     </TooltipContent>
                   </Tooltip>
                   
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="border-border text-foreground hover:bg-accent hover:text-accent-foreground ripple-effect magnetic-hover sparkle"
-                      >
-                        <User className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>User Profile</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <UserProfileDropdown />
                 </div>
               </div>
             </div>
