@@ -1,52 +1,95 @@
 import { useState } from "react";
-import { ArrowLeft, Calendar, Users, Target, FileText, Settings, BarChart3 } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Target, FileText, Settings, BarChart3, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KanbanBoard from "./KanbanBoard";
+import AddTaskModal from "./AddTaskModal";
+import CalendarView from "./CalendarView";
+import ProjectFiles from "./ProjectFiles";
+import ProjectTeam from "./ProjectTeam";
+import { Project } from "@/lib/projectData";
 
 interface ProjectOverviewProps {
-  project: any;
+  project: Project;
   onBack: () => void;
+  onNavigateToAgile?: () => void;
 }
 
-const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
+const ProjectOverview = ({ project, onBack, onNavigateToAgile }: ProjectOverviewProps) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
-  // Mock data based on template
+  // Get template data based on the actual project template
   const getTemplateData = (templateId: string) => {
     switch (templateId) {
       case 'agile':
         return {
           sections: ['Backlog', 'Sprint 1', 'Sprint 2', 'In Progress', 'Testing', 'Done'],
           customFields: ['Story Points', 'Sprint', 'Epic', 'Assignee'],
-          tasks: [
-            { id: 1, title: 'User Authentication', status: 'In Progress', points: 8 },
-            { id: 2, title: 'Dashboard UI', status: 'Backlog', points: 5 },
-            { id: 3, title: 'API Integration', status: 'Testing', points: 13 }
-          ]
+          tasks: [] // Start with empty tasks
         };
       case 'finance':
         return {
           sections: ['Budget Planning', 'Expense Tracking', 'Invoice Management', 'Reports', 'Approval'],
           customFields: ['Amount', 'Category', 'Due Date', 'Approver'],
-          tasks: [
-            { id: 1, title: 'Q1 Budget Review', status: 'Budget Planning', amount: '$50,000' },
-            { id: 2, title: 'Office Expenses', status: 'Expense Tracking', amount: '$2,500' },
-            { id: 3, title: 'Client Invoice #001', status: 'Invoice Management', amount: '$15,000' }
-          ]
+          tasks: [] // Start with empty tasks
+        };
+      case 'personal':
+        return {
+          sections: ['To Do', 'In Progress', 'Review', 'Done'],
+          customFields: ['Priority', 'Due Date', 'Assignee'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'event':
+        return {
+          sections: ['Planning', 'Vendor Management', 'Budget Tracking', 'Execution', 'Wrap-up'],
+          customFields: ['Budget', 'Vendor', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'hr':
+        return {
+          sections: ['Recruitment', 'Onboarding', 'Training', 'Performance', 'Completed'],
+          customFields: ['Candidate', 'Department', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'construction':
+        return {
+          sections: ['Planning', 'Permits', 'Construction', 'Inspections', 'Completion'],
+          customFields: ['Contractor', 'Budget', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'consulting':
+        return {
+          sections: ['Discovery', 'Analysis', 'Implementation', 'Review', 'Delivery'],
+          customFields: ['Client', 'Deliverable', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'education':
+        return {
+          sections: ['Curriculum Design', 'Content Creation', 'Testing', 'Deployment', 'Evaluation'],
+          customFields: ['Module', 'Duration', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'product':
+        return {
+          sections: ['Research', 'Design', 'Development', 'Testing', 'Launch'],
+          customFields: ['Feature', 'Sprint', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
+        };
+      case 'shipbuilding':
+        return {
+          sections: ['Design', 'Construction', 'Assembly', 'Testing', 'Delivery'],
+          customFields: ['Component', 'Phase', 'Due Date', 'Status'],
+          tasks: [] // Start with empty tasks
         };
       default:
         return {
           sections: ['To Do', 'In Progress', 'Review', 'Done'],
           customFields: ['Priority', 'Due Date', 'Assignee'],
-          tasks: [
-            { id: 1, title: 'Initial Setup', status: 'Done', priority: 'High' },
-            { id: 2, title: 'Main Tasks', status: 'In Progress', priority: 'Medium' },
-            { id: 3, title: 'Final Review', status: 'To Do', priority: 'Low' }
-          ]
+          tasks: [] // Start with empty tasks
         };
     }
   };
@@ -70,6 +113,15 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
         <div className="flex items-center space-x-2">
           <Badge variant="outline">{project.template}</Badge>
           <Badge className="bg-success text-white">Active</Badge>
+          {project.template === 'agile' && onNavigateToAgile && (
+            <Button 
+              onClick={onNavigateToAgile}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Agile Dashboard
+            </Button>
+          )}
         </div>
       </div>
 
@@ -94,7 +146,7 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
             </div>
             <div>
               <div className="text-sm text-muted-foreground">Tasks</div>
-              <div className="text-2xl font-bold text-foreground">{templateData.tasks.length}</div>
+              <div className="text-2xl font-bold text-foreground">{project.tasks || 0}</div>
             </div>
           </div>
         </Card>
@@ -105,8 +157,8 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
               <Users className="w-5 h-5 text-success" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Team</div>
-              <div className="text-2xl font-bold text-foreground">4</div>
+              <div className="text-sm text-muted-foreground">Assignee</div>
+              <div className="text-lg font-bold text-foreground">{project.assignee || 'Unassigned'}</div>
             </div>
           </div>
         </Card>
@@ -117,8 +169,8 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
               <Calendar className="w-5 h-5 text-warning" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Days Left</div>
-              <div className="text-2xl font-bold text-foreground">12</div>
+              <div className="text-sm text-muted-foreground">Due Date</div>
+              <div className="text-lg font-bold text-foreground">{project.dueDate || 'Not set'}</div>
             </div>
           </div>
         </Card>
@@ -165,10 +217,10 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
               <h3 className="font-semibold text-foreground mb-4">Recent Activity</h3>
               <div className="space-y-3">
                 {[
-                  { action: 'Task completed', item: 'User Authentication', time: '2 hours ago' },
-                  { action: 'Comment added', item: 'Dashboard UI', time: '4 hours ago' },
-                  { action: 'File uploaded', item: 'Design Mockups', time: '1 day ago' },
-                  { action: 'Task assigned', item: 'API Integration', time: '2 days ago' }
+                  { action: 'Project created', item: project.name, time: 'Just now' },
+                  { action: 'Template applied', item: `${project.template || project.type} template`, time: 'Just now' },
+                  { action: 'Assignee set', item: project.assignee || 'Unassigned', time: 'Just now' },
+                  { action: 'Status updated', item: project.status || 'Planning', time: 'Just now' }
                 ].map((activity, index) => (
                   <div key={index} className="flex items-center space-x-3 py-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -200,39 +252,69 @@ const ProjectOverview = ({ project, onBack }: ProjectOverviewProps) => {
         </TabsContent>
 
         <TabsContent value="tasks">
-          <KanbanBoard />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Task Board</h3>
+              <Button 
+                onClick={() => setShowAddTaskModal(true)}
+                className="bg-gradient-primary hover:opacity-90"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Task
+              </Button>
+            </div>
+            <KanbanBoard projectId={project.id} />
+          </div>
         </TabsContent>
 
         <TabsContent value="calendar">
-          <Card className="p-6">
-            <div className="text-center py-20">
-              <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Project Calendar</h3>
-              <p className="text-muted-foreground">Timeline and milestone view for this project</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Project Calendar</h3>
+              <Badge variant="outline" className="text-sm">
+                {project.name} Timeline
+              </Badge>
             </div>
-          </Card>
+            <CalendarView />
+          </div>
         </TabsContent>
 
         <TabsContent value="files">
-          <Card className="p-6">
-            <div className="text-center py-20">
-              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Project Files</h3>
-              <p className="text-muted-foreground">Documents, images, and other project assets</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Project Files</h3>
+              <Badge variant="outline" className="text-sm">
+                {project.name} Assets
+              </Badge>
             </div>
-          </Card>
+            <ProjectFiles projectId={project.id} projectName={project.name} />
+          </div>
         </TabsContent>
 
         <TabsContent value="team">
-          <Card className="p-6">
-            <div className="text-center py-20">
-              <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">Team Management</h3>
-              <p className="text-muted-foreground">Manage team members, roles, and permissions</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Project Team</h3>
+              <Badge variant="outline" className="text-sm">
+                {project.name} Team
+              </Badge>
             </div>
-          </Card>
+            <ProjectTeam projectId={project.id} projectName={project.name} />
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        open={showAddTaskModal}
+        onOpenChange={setShowAddTaskModal}
+        defaultProject={project.id?.toString()}
+        projectId={project.id}
+        onTaskCreate={(task) => {
+          console.log('Task created for project:', project.name, task);
+          setShowAddTaskModal(false);
+        }}
+      />
     </div>
   );
 };
