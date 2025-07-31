@@ -159,6 +159,7 @@ const ProjectSidebar = ({ activeView = 'dashboard', onViewChange, onProjectSelec
             <Calendar className="w-4 h-4 mr-2 sm:mr-3 transition-transform group-hover:scale-110 icon-animated" />
             <span className="truncate font-medium">Calendar</span>
           </Button>
+
           <Button 
             variant="ghost" 
             className={`w-full justify-start text-sm sm:text-base transition-all duration-300 hover:scale-105 group menu-item-animated ripple-effect ${

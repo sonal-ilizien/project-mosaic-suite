@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Plus, Filter, Search, Clock, User, CheckCircle, AlertCircle, PlayCircle, PauseCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Plus, Filter, Search, Clock, User, CheckCircle, AlertCircle, PlayCircle, PauseCircle, BarChart3, XCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,14 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 
 interface Task {
   id: string;
@@ -30,6 +38,7 @@ interface Task {
   project?: string;
   type: 'task' | 'meeting' | 'deadline' | 'milestone' | 'review';
   color?: string;
+  progress?: number;
 }
 
 interface CalendarViewProps {
@@ -67,6 +76,17 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  
+  // Timeline specific state
+  const [timelineZoom, setTimelineZoom] = useState<'day' | 'week' | 'month' | 'year'>('year');
+  const [timelineStartDate, setTimelineStartDate] = useState(() => {
+    return new Date('2024-01-01'); // Start from January 2024
+  });
+  const [timelineEndDate, setTimelineEndDate] = useState(() => {
+    return new Date('2024-12-31'); // End at December 2024
+  });
+  const [hoveredTask, setHoveredTask] = useState<Task | null>(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -74,35 +94,24 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
   const mockTasks: Task[] = [
     {
       id: '1',
-      title: 'Mobile App Review',
-      description: 'Review the latest mobile app design and provide feedback',
-      date: '2024-01-15',
-      startTime: '10:00',
-      endTime: '11:30',
-      status: 'in-progress',
-      priority: 'high',
-      assignee: 'John Doe',
-      project: 'Mobile App Redesign',
-      type: 'review',
-      color: '#3B82F6'
-    },
-    {
-      id: '2',
       title: 'Budget Planning Deadline',
       description: 'Submit Q1 budget planning documents',
       date: '2024-01-20',
+      startTime: '08:00',
+      endTime: '17:00',
       status: 'pending',
       priority: 'urgent',
       assignee: 'Jane Smith',
       project: 'Q1 Budget Planning',
       type: 'deadline',
-      color: '#EF4444'
+      color: '#EF4444',
+      progress: 25
     },
     {
-      id: '3',
+      id: '2',
       title: 'Team Sprint Planning',
       description: 'Plan next sprint tasks and assign responsibilities',
-      date: '2024-01-18',
+      date: '2024-03-15',
       startTime: '14:00',
       endTime: '16:00',
       status: 'pending',
@@ -110,25 +119,29 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
       assignee: 'Alice Johnson',
       project: 'Website Migration',
       type: 'meeting',
-      color: '#10B981'
+      color: '#10B981',
+      progress: 0
     },
     {
-      id: '4',
+      id: '3',
       title: 'Project Milestone Review',
       description: 'Review project milestones and update progress',
-      date: '2024-01-25',
+      date: '2024-06-10',
+      startTime: '10:00',
+      endTime: '12:00',
       status: 'completed',
       priority: 'high',
       assignee: 'Bob Wilson',
       project: 'Mobile App Redesign',
       type: 'milestone',
-      color: '#8B5CF6'
+      color: '#8B5CF6',
+      progress: 100
     },
     {
-      id: '5',
+      id: '4',
       title: 'Client Presentation',
       description: 'Present project progress to client',
-      date: '2024-01-22',
+      date: '2024-09-22',
       startTime: '15:00',
       endTime: '16:30',
       status: 'pending',
@@ -136,7 +149,8 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
       assignee: 'Sarah Chen',
       project: 'Q1 Budget Planning',
       type: 'meeting',
-      color: '#F59E0B'
+      color: '#F59E0B',
+      progress: 100
     }
   ];
 
@@ -326,6 +340,201 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  // Timeline specific functions
+  const generateTimelineDates = () => {
+    const dates: Date[] = [];
+    const start = new Date(timelineStartDate);
+    const end = new Date(timelineEndDate);
+    let current = new Date(start);
+
+    switch (timelineZoom) {
+      case 'day':
+        while (current <= end) {
+          dates.push(new Date(current));
+          current.setDate(current.getDate() + 1);
+        }
+        break;
+      case 'week':
+        while (current <= end) {
+          dates.push(new Date(current));
+          current.setDate(current.getDate() + 7);
+        }
+        break;
+      case 'month':
+        while (current <= end) {
+          dates.push(new Date(current));
+          current.setMonth(current.getMonth() + 1);
+        }
+        break;
+      case 'year':
+        while (current <= end) {
+          dates.push(new Date(current));
+          current.setFullYear(current.getFullYear() + 1);
+        }
+        break;
+    }
+    return dates;
+  };
+
+  const getTimelineDateLabel = (date: Date) => {
+    switch (timelineZoom) {
+      case 'day':
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          weekday: 'short'
+        });
+      case 'week':
+        return `Week ${getWeekNumber(date)}`;
+      case 'month':
+        return date.toLocaleDateString('en-US', { 
+          month: 'long', 
+          year: 'numeric'
+        });
+      case 'year':
+        return date.getFullYear().toString();
+      default:
+        return date.toLocaleDateString();
+    }
+  };
+
+  const getWeekNumber = (date: Date) => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  };
+
+  const calculateTaskPosition = (task: Task) => {
+    const taskStart = new Date(task.date);
+    const taskEnd = new Date(task.date);
+    // For timeline, we'll use the task date as both start and end
+    const timelineStart = new Date(timelineStartDate);
+    const timelineEnd = new Date(timelineEndDate);
+    
+    const totalTimelineDuration = timelineEnd.getTime() - timelineStart.getTime();
+    const taskStartOffset = taskStart.getTime() - timelineStart.getTime();
+    const taskDuration = taskEnd.getTime() - taskStart.getTime();
+    
+    const left = (taskStartOffset / totalTimelineDuration) * 100;
+    const width = Math.max(8, (taskDuration / totalTimelineDuration) * 100); // Minimum 8% width for better visibility
+    
+    return { left: Math.max(0, left), width: Math.min(100, width) };
+  };
+
+  const handleTimelineNavigation = (direction: 'prev' | 'next') => {
+    const newStart = new Date(timelineStartDate);
+    const newEnd = new Date(timelineEndDate);
+    const duration = newEnd.getTime() - newStart.getTime();
+    
+    if (direction === 'prev') {
+      newStart.setTime(newStart.getTime() - duration);
+      newEnd.setTime(newEnd.getTime() - duration);
+    } else {
+      newStart.setTime(newStart.getTime() + duration);
+      newEnd.setTime(newEnd.getTime() + duration);
+    }
+    
+    setTimelineStartDate(newStart);
+    setTimelineEndDate(newEnd);
+  };
+
+  const handleTimelineZoomChange = (newZoom: 'day' | 'week' | 'month' | 'year') => {
+    setTimelineZoom(newZoom);
+    
+    const today = new Date();
+    const newStart = new Date(today);
+    const newEnd = new Date(today);
+    
+    switch (newZoom) {
+      case 'day':
+        newStart.setDate(today.getDate() - 7);
+        newEnd.setDate(today.getDate() + 7);
+        break;
+      case 'week':
+        newStart.setDate(today.getDate() - 21);
+        newEnd.setDate(today.getDate() + 21);
+        break;
+      case 'month':
+        newStart.setMonth(today.getMonth() - 2);
+        newEnd.setMonth(today.getMonth() + 2);
+        break;
+      case 'year':
+        newStart.setFullYear(today.getFullYear() - 1);
+        newEnd.setFullYear(today.getFullYear() + 1);
+        break;
+    }
+    
+    setTimelineStartDate(newStart);
+    setTimelineEndDate(newEnd);
+  };
+
+  const handleTaskHover = (task: Task, event: React.MouseEvent) => {
+    setHoveredTask(task);
+    setHoverPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleTaskLeave = () => {
+    setHoveredTask(null);
+  };
+
+  // Calculate task bar position based on start time
+  const calculateTaskBarPosition = (task: Task, zoom: string) => {
+    if (!task.startTime) return 0;
+    
+    const [hours, minutes] = task.startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes;
+    
+    if (zoom === 'day') {
+      // For day view, position based on hour (0-23)
+      return (totalMinutes / (24 * 60)) * 100;
+    } else if (zoom === 'week') {
+      // For week view, position based on day of week (0-6)
+      const taskDate = new Date(task.date);
+      const dayOfWeek = taskDate.getDay();
+      return (dayOfWeek / 7) * 100;
+    } else if (zoom === 'month') {
+      // For month view, position based on week of month (0-4)
+      const taskDate = new Date(task.date);
+      const weekOfMonth = Math.ceil(taskDate.getDate() / 7);
+      return ((weekOfMonth - 1) / 5) * 100;
+    } else if (zoom === 'year') {
+      // For year view, position based on month (0-11)
+      const taskDate = new Date(task.date);
+      const month = taskDate.getMonth();
+      return (month / 12) * 100;
+    }
+    
+    return 0;
+  };
+
+  // Calculate task bar width based on duration
+  const calculateTaskBarWidth = (task: Task, zoom: string) => {
+    if (!task.startTime || !task.endTime) return 10;
+    
+    const [startHours, startMinutes] = task.startTime.split(':').map(Number);
+    const [endHours, endMinutes] = task.endTime.split(':').map(Number);
+    
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    const durationMinutes = endTotalMinutes - startTotalMinutes;
+    
+    if (zoom === 'day') {
+      // For day view, width based on duration in hours
+      return Math.max(5, (durationMinutes / (24 * 60)) * 100);
+    } else if (zoom === 'week') {
+      // For week view, assume 1 day duration
+      return Math.max(8, (1 / 7) * 100);
+    } else if (zoom === 'month') {
+      // For month view, assume 1 week duration
+      return Math.max(10, (1 / 5) * 100);
+    } else if (zoom === 'year') {
+      // For year view, assume 1 month duration
+      return Math.max(6, (1 / 12) * 100);
+    }
+    
+    return 10;
+  };
+
   return (
     <div className="w-full bg-white relative min-h-screen">
       {/* Header */}
@@ -336,10 +545,25 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
             onClick={() => setShowCalendar(!showCalendar)}
             className="text-xl font-medium text-blue-600 hover:bg-blue-50 px-3 py-2 rounded flex items-center space-x-2"
           >
-            <span>{selectedWeekStart.toLocaleDateString('en-US', {
-              month: window.innerWidth < 640 ? 'short' : 'long',
-              year: 'numeric'
-            })}</span>
+            <span>
+              {timelineZoom === 'day' && selectedWeekStart.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+              {timelineZoom === 'week' && selectedWeekStart.toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+              })}
+              {timelineZoom === 'month' && selectedWeekStart.toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+              })}
+              {timelineZoom === 'year' && selectedWeekStart.toLocaleDateString('en-US', {
+                year: 'numeric'
+              })}
+            </span>
             <Calendar className="w-5 h-5" />
           </button>
 
@@ -407,6 +631,56 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
 
         {/* Right Section: Navigation and Add Task Button */}
         <div className="flex items-center gap-2 lg:gap-4">
+          {/* View Selector */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={view === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setView('week')}
+            >
+              Week
+            </Button>
+            <Button
+              variant={view === 'month' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setView('month')}
+            >
+              Month
+            </Button>
+          </div>
+
+          {/* Timeline Zoom Controls */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={timelineZoom === 'day' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleTimelineZoomChange('day')}
+            >
+              Day
+            </Button>
+            <Button
+              variant={timelineZoom === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleTimelineZoomChange('week')}
+            >
+              Week
+            </Button>
+            <Button
+              variant={timelineZoom === 'month' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleTimelineZoomChange('month')}
+            >
+              Month
+            </Button>
+            <Button
+              variant={timelineZoom === 'year' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleTimelineZoomChange('year')}
+            >
+              Year
+            </Button>
+          </div>
+
           <button
             onClick={() => {
               const prevWeek = new Date(selectedWeekStart);
@@ -418,12 +692,14 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
           >
             <ChevronLeft size={16} className="text-blue-500 sm:w-5 sm:h-5" />
           </button>
+          
           <button
             onClick={handleTodayClick}
             className="px-2 lg:px-3 py-1 text-blue-500 text-xs sm:text-sm hover:text-blue-600 whitespace-nowrap"
           >
             Today
           </button>
+          
           <button
             onClick={() => {
               const nextWeek = new Date(selectedWeekStart);
@@ -496,143 +772,130 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
         </div>
       </div>
 
-      {/* Calendar Layout */}
-      <div className="flex">
-        {/* Fixed Task Column */}
-        <div className="w-[200px] bg-white border-r flex-shrink-0">
-          {/* Task Header */}
-          <div className="p-2 sm:p-3 border-b bg-gray-50">
-            <div className="text-xs sm:text-sm font-medium text-gray-600">Tasks</div>
+      {/* Gantt Chart Layout */}
+      <div className="flex h-[calc(100vh-200px)] bg-white">
+        {/* Project List */}
+        <div className="w-64 bg-gray-50 border-r border-gray-200 flex-shrink-0">
+          <div className="p-3 border-b border-gray-200 bg-white">
+            <h3 className="font-semibold text-gray-800 text-lg">Projects</h3>
           </div>
-
-          {/* Task List */}
-          {filteredTasks.map((task) => (
-            <div key={task.id} className="p-2 sm:p-3 lg:p-4 border-b hover:bg-gray-50 h-12 sm:h-16 lg:h-20 flex items-center">
-              <div className="flex items-center gap-2 lg:gap-3 w-full">
-                <div className="relative flex-shrink-0">
-                  <div
-                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs font-medium"
-                    style={{ backgroundColor: task.color || '#3B82F6' }}
-                  >
-                    {task.title.charAt(0)}
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-gray-800 text-xs sm:text-sm truncate">{task.title}</div>
-                  <div className="text-xs text-gray-500 truncate">{task.assignee}</div>
-                </div>
+          
+          <div className="p-4 space-y-2">
+            {filteredTasks.map((task, index) => (
+              <div 
+                key={task.id} 
+                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                onClick={() => handleTaskClick(task)}
+              >
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: task.color || '#3B82F6' }}
+                />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {task.title}
+                </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Scrollable Content Area */}
+        {/* Gantt Chart Grid */}
         <div className="flex-1 overflow-x-auto">
-          <div className="min-w-[800px]">
-            {/* Date Headers */}
-            <div className="grid grid-cols-7 border-b bg-gray-50">
-              {weekDates.map((date, index) => (
-                <div key={index} className="border-r" data-today={isToday(date)}>
-                  <div className="p-2 sm:p-3 text-center">
-                    <div
-                      className={`font-medium text-xs sm:text-sm ${
-                        isToday(date)
-                          ? 'text-blue-600'
-                          : 'text-gray-800'
-                      }`}
-                    >
-                      <div className="block sm:hidden">
-                        {date.getDate()}
-                        <div className="text-xs">{getDayName(date)}</div>
-                      </div>
-                      <div className="hidden sm:block md:hidden">
-                        {`${date.getDate()} ${getDayName(date)}`}
-                      </div>
-                      <div className="hidden md:block">
-                        {`${date.getDate()}  ${date.toLocaleString('default', { month: 'short' })} ${getDayName(date)}`}
-                      </div>
+          <div className="min-w-max">
+            {/* Header */}
+            <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+              <div className="flex">
+                {timelineZoom === 'day' && (
+                  // Day view - show hours
+                  Array.from({ length: 24 }, (_, hour) => (
+                    <div key={hour} className="border-r border-gray-200 p-5 text-center min-w-[60px]">
+                      <div className="text-xs font-medium text-gray-800">{hour}:00</div>
+                    </div>
+                  ))
+                )}
+                {timelineZoom === 'week' && (
+                  // Week view - show days
+                  ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => (
+                    <div key={dayIndex} className="border-r border-gray-200 p-2 text-center min-w-[120px]">
+                      <div className="text-sm font-semibold text-gray-800">{day}</div>
+                      <div className="text-xs text-gray-600">{dayIndex + 1}</div>
+                    </div>
+                  ))
+                )}
+                {timelineZoom === 'month' && (
+                  // Month view - show weeks
+                  ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'].map((week, weekIndex) => (
+                    <div key={weekIndex} className="border-r border-gray-200 p-2 text-center min-w-[140px]">
+                      <div className="text-sm font-semibold text-gray-800">{week}</div>
+                      <div className="text-xs text-gray-600">Days 1-7</div>
+                    </div>
+                  ))
+                )}
+                {timelineZoom === 'year' && (
+                  // Year view - show months
+                  ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, monthIndex) => (
+                    <div key={monthIndex} className="border-r border-gray-200 p-2 text-center min-w-[100px]">
+                      <div className="text-sm font-semibold text-gray-800">{month}</div>
+                      <div className="text-xs text-gray-600">2024</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Project Rows */}
+            <div className="bg-gray-50">
+              {filteredTasks.map((task, taskIndex) => (
+                <div key={task.id} className="border-b border-gray-200 relative h-12">
+                  {/* Grid Lines */}
+                  <div className="absolute inset-0 flex">
+                    {timelineZoom === 'day' && (
+                      // Day view grid
+                      Array.from({ length: 24 }, (_, hour) => (
+                        <div key={hour} className="border-r border-gray-200 min-w-[60px]" />
+                      ))
+                    )}
+                    {timelineZoom === 'week' && (
+                      // Week view grid
+                      Array.from({ length: 7 }, (_, day) => (
+                        <div key={day} className="border-r border-gray-200 min-w-[120px]" />
+                      ))
+                    )}
+                    {timelineZoom === 'month' && (
+                      // Month view grid
+                      Array.from({ length: 5 }, (_, week) => (
+                        <div key={week} className="border-r border-gray-200 min-w-[140px]" />
+                      ))
+                    )}
+                    {timelineZoom === 'year' && (
+                      // Year view grid
+                      Array.from({ length: 12 }, (_, month) => (
+                        <div key={month} className="border-r border-gray-200 min-w-[100px]" />
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Task Bars */}
+                  <div
+                    className="absolute top-2 bottom-2 rounded cursor-pointer transition-all duration-200 hover:shadow-md"
+                    style={{
+                      left: `${calculateTaskBarPosition(task, timelineZoom)}%`,
+                      width: `${calculateTaskBarWidth(task, timelineZoom)}%`,
+                      backgroundColor: task.color || '#3B82F6'
+                    }}
+                    onClick={() => handleTaskClick(task)}
+                    onMouseEnter={(e) => handleTaskHover(task, e)}
+                    onMouseLeave={handleTaskLeave}
+                  >
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-xs font-medium text-white truncate px-1">
+                        {timelineZoom === 'day' ? `${task.startTime}` : task.title}
+                      </span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Schedule Rows */}
-            {filteredTasks.map((task) => (
-              <div key={task.id} className="grid grid-cols-7 border-b hover:bg-gray-50">
-                {weekDates.map((date, dateIndex) => {
-                  const tasksForThisDay = getTasksForDate(date).filter(t => t.id === task.id);
-                  return (
-                    <div key={dateIndex} className="border-r">
-                      <div className="flex flex-col h-12 sm:h-16 lg:h-20 justify-center items-center p-1">
-                        {tasksForThisDay.map(taskItem => {
-                          const statusColors = getStatusColor(taskItem.status);
-                          const priorityColor = getPriorityColor(taskItem.priority);
-                          const progress = getProgressForTask(taskItem);
-                          
-                          return (
-                            <div
-                              key={taskItem.id}
-                              className="w-full max-w-[90%] cursor-pointer"
-                              onClick={() => handleTaskClick(taskItem)}
-                            >
-                              {/* Task Card */}
-                              <div
-                                className="rounded text-xs text-center font-medium text-gray-800 mb-1"
-                                style={statusColors}
-                                title={`${taskItem.title} - ${taskItem.description || ''} - Status: ${taskItem.status} - Priority: ${taskItem.priority}`}
-                              >
-                                <div className="flex items-center justify-between px-1 py-1">
-                                  <div className="flex items-center gap-1 flex-1 min-w-0">
-                                    {getStatusIcon(taskItem.status)}
-                                    <span className="truncate">{taskItem.title}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <div 
-                                      className="w-2 h-2 rounded-full"
-                                      style={{ backgroundColor: priorityColor }}
-                                    />
-                                    <span className="text-[10px] uppercase font-semibold">
-                                      {taskItem.priority}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Progress Bar */}
-                              <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
-                                <div 
-                                  className="h-1.5 rounded-full transition-all duration-300"
-                                  style={{ 
-                                    width: `${progress}%`,
-                                    backgroundColor: getProgressColor(progress)
-                                  }}
-                                />
-                              </div>
-                              
-                              {/* Progress Text and Additional Info */}
-                              <div className="text-[10px] text-gray-600 text-center space-y-1">
-                                <div>{progress}% Complete</div>
-                                {taskItem.startTime && taskItem.endTime && (
-                                  <div className="text-[8px] text-gray-500">
-                                    {taskItem.startTime} - {taskItem.endTime}
-                                  </div>
-                                )}
-                                {taskItem.assignee && (
-                                  <div className="text-[8px] text-gray-500 truncate">
-                                    {taskItem.assignee}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
           </div>
         </div>
       </div>
@@ -876,6 +1139,72 @@ const CalendarView = ({ tasks = [] }: CalendarViewProps) => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tooltip for Timeline */}
+      {hoveredTask && (
+        <div
+          className="fixed z-50 bg-white border rounded-lg shadow-lg p-3 max-w-xs"
+          style={{
+            left: Math.max(10, hoverPosition.x - 320), // Position on the left side
+            top: hoverPosition.y - 10,
+            transform: 'translateY(-100%)'
+          }}
+        >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: hoveredTask.color || '#3B82F6' }}
+              />
+              <h4 className="font-semibold text-gray-800">{hoveredTask.title}</h4>
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              {hoveredTask.description}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-gray-500">Date:</span>
+                <div className="font-medium">{hoveredTask.date}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Status:</span>
+                <div className="font-medium">{hoveredTask.status}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Priority:</span>
+                <div className="font-medium">{hoveredTask.priority}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Type:</span>
+                <div className="font-medium">{hoveredTask.type}</div>
+              </div>
+            </div>
+            
+            {hoveredTask.assignee && (
+              <div className="text-xs">
+                <span className="text-gray-500">Assignee:</span>
+                <div className="font-medium">{hoveredTask.assignee}</div>
+              </div>
+            )}
+            
+            {hoveredTask.progress !== undefined && (
+              <div className="text-xs">
+                <span className="text-gray-500">Progress:</span>
+                <div className="font-medium">{hoveredTask.progress}%</div>
+              </div>
+            )}
+            
+            {hoveredTask.startTime && hoveredTask.endTime && (
+              <div className="text-xs">
+                <span className="text-gray-500">Time:</span>
+                <div className="font-medium">{hoveredTask.startTime} - {hoveredTask.endTime}</div>
+              </div>
+            )}
           </div>
         </div>
       )}
