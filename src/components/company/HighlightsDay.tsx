@@ -52,8 +52,6 @@ import {
   Upload,
   Share,
   Copy,
-  Cut,
-  Paste,
   Undo,
   Redo,
   Save,
@@ -98,28 +96,7 @@ import {
   MapPin as MapPinIcon,
   Mail as MailIcon,
   Phone as PhoneIcon,
-  MessageCircle,
-  MessageSquare as MessageSquareIcon,
-  MessageCircle as MessageCircleIcon,
-  MessageSquare as MessageSquareIcon2,
-  MessageCircle as MessageCircleIcon2,
-  MessageSquare as MessageSquareIcon3,
-  MessageCircle as MessageCircleIcon3,
-  MessageSquare as MessageSquareIcon4,
-  MessageCircle as MessageCircleIcon4,
-  MessageSquare as MessageSquareIcon5,
-  MessageCircle as MessageCircleIcon5,
-  MessageSquare as MessageSquareIcon6,
-  MessageCircle as MessageCircleIcon6,
-  MessageSquare as MessageSquareIcon7,
-  MessageCircle as MessageCircleIcon7,
-  MessageSquare as MessageSquareIcon8,
-  MessageCircle as MessageCircleIcon8,
-  MessageSquare as MessageSquareIcon9,
-  MessageCircle as MessageCircleIcon9,
-  MessageSquare as MessageSquareIcon10,
-  MessageCircle as MessageCircleIcon10,
-  CheckCircle,
+  X,
   PlayCircle,
   PauseCircle,
   StopCircle,
@@ -127,6 +104,7 @@ import {
   RefreshCw,
   Settings,
   BellRing,
+  CheckCircle,
   AlertCircle,
   CheckSquare,
   Square,
@@ -141,7 +119,6 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
-  Eye as EyeIcon,
   Edit as EditIcon,
   Trash2 as Trash2Icon,
   Archive as ArchiveIcon2,
@@ -211,6 +188,7 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CommonDialog, CommonInput, CommonSelect, CommonTextarea, CommonFormGrid, CommonFormActions, CommonButton } from "@/components/ui/common-dialog";
 
 interface Highlight {
   id: number;
@@ -354,6 +332,27 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showHighlightDetails, setShowHighlightDetails] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(null);
+  const [editingHighlight, setEditingHighlight] = useState<Highlight | null>(null);
+  
+  // Form state
+  const [highlightForm, setHighlightForm] = useState({
+    title: '',
+    description: '',
+    type: '',
+    status: '',
+    priority: '',
+    time: '',
+    employee: '',
+    project: '',
+    department: '',
+    attendees: ''
+  });
 
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value };
@@ -382,7 +381,105 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
   };
 
   const handleAddHighlight = () => {
-    onAddHighlight?.();
+    setShowAddModal(true);
+  };
+
+  const handleHighlightFormChange = (field: string, value: string) => {
+    setHighlightForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddHighlightSubmit = () => {
+    const newHighlight: Highlight = {
+      id: Math.max(...highlights.map(h => h.id)) + 1,
+      title: highlightForm.title,
+      description: highlightForm.description,
+      type: highlightForm.type as 'meeting' | 'kudos' | 'delay' | 'reminder' | 'achievement' | 'announcement',
+      status: highlightForm.status as 'upcoming' | 'completed' | 'pending' | 'overdue',
+      priority: highlightForm.priority as 'high' | 'medium' | 'low' | undefined,
+      time: highlightForm.time,
+      employee: highlightForm.employee || undefined,
+      project: highlightForm.project || undefined,
+      department: highlightForm.department || undefined,
+      attendees: highlightForm.attendees ? parseInt(highlightForm.attendees) : undefined,
+      icon: "📅",
+      color: "#3B82F6"
+    };
+    
+    setHighlights(prev => [...prev, newHighlight]);
+    setHighlightForm({
+      title: '',
+      description: '',
+      type: '',
+      status: '',
+      priority: '',
+      time: '',
+      employee: '',
+      project: '',
+      department: '',
+      attendees: ''
+    });
+    setShowAddModal(false);
+  };
+
+  const handleViewDetails = (highlight: Highlight) => {
+    setSelectedHighlight(highlight);
+    setShowHighlightDetails(true);
+  };
+
+  const handleEditHighlight = (highlight: Highlight) => {
+    setEditingHighlight(highlight);
+    setHighlightForm({
+      title: highlight.title,
+      description: highlight.description,
+      type: highlight.type,
+      status: highlight.status,
+      priority: highlight.priority || '',
+      time: highlight.time,
+      employee: highlight.employee || '',
+      project: highlight.project || '',
+      department: highlight.department || '',
+      attendees: highlight.attendees?.toString() || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editingHighlight) return;
+    
+    const updatedHighlight: Highlight = {
+      ...editingHighlight,
+      title: highlightForm.title,
+      description: highlightForm.description,
+      type: highlightForm.type as 'meeting' | 'kudos' | 'delay' | 'reminder' | 'achievement' | 'announcement',
+      status: highlightForm.status as 'upcoming' | 'completed' | 'pending' | 'overdue',
+      priority: highlightForm.priority as 'high' | 'medium' | 'low' | undefined,
+      time: highlightForm.time,
+      employee: highlightForm.employee || undefined,
+      project: highlightForm.project || undefined,
+      department: highlightForm.department || undefined,
+      attendees: highlightForm.attendees ? parseInt(highlightForm.attendees) : undefined
+    };
+    
+    setHighlights(prev => prev.map(h => h.id === editingHighlight.id ? updatedHighlight : h));
+    setShowEditModal(false);
+    setEditingHighlight(null);
+  };
+
+  const handleDeleteHighlight = (highlightId: number) => {
+    setHighlights(prev => prev.filter(h => h.id !== highlightId));
+  };
+
+  const handleShareHighlight = (highlight: Highlight) => {
+    const shareText = `${highlight.title}\n${highlight.description}\nTime: ${highlight.time}\nStatus: ${highlight.status}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: highlight.title,
+        text: shareText
+      });
+    } else {
+      navigator.clipboard.writeText(shareText);
+    }
   };
 
   const handleHighlightUpdate = (highlightId: number, updates: Partial<Highlight>) => {
@@ -458,7 +555,7 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
 
   const renderHighlightCard = (highlight: Highlight) => {
     return (
-      <Card key={highlight.id} className="p-4 hover:shadow-lg transition-all duration-300 group">
+      <Card key={highlight.id} className="p-4 hover:shadow-lg transition-all duration-300 group border border-gray-200 hover:border-blue-300 hover:rounded-3xl hover:shadow-blue-500/25 hover:shadow-xl hover:scale-105 transform-gpu">
         <div className="space-y-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
@@ -466,10 +563,10 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
                 {highlight.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-foreground text-sm group-hover:text-blue-600 transition-colors">
+                <h4 className="font-semibold text-foreground text-base group-hover:text-blue-600 transition-colors">
                   {highlight.title}
                 </h4>
-                <p className="text-xs text-muted-foreground">{highlight.description}</p>
+                <p className="text-sm text-muted-foreground">{highlight.description}</p>
               </div>
             </div>
             <DropdownMenu>
@@ -479,59 +576,74 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>View Details</DropdownMenuItem>
-                <DropdownMenuItem>Edit Highlight</DropdownMenuItem>
-                <DropdownMenuItem>Mark as Complete</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleViewDetails(highlight)}>
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEditHighlight(highlight)}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Highlight
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleShareHighlight(highlight)}>
+                  <Share className="w-4 h-4 mr-2" />
+                  Share
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="text-red-600"
+                  onClick={() => handleDeleteHighlight(highlight.id)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Badge className={`text-xs ${getTypeColor(highlight.type)}`}>
+              <Badge className={`text-sm ${getTypeColor(highlight.type)}`}>
                 {highlight.type}
               </Badge>
-              <Badge className={`text-xs ${getStatusColor(highlight.status)}`}>
+              <Badge className={`text-sm ${getStatusColor(highlight.status)}`}>
                 {highlight.status}
               </Badge>
               {highlight.priority && (
-                <Badge className={`text-xs ${getPriorityColor(highlight.priority)}`}>
+                <Badge className={`text-sm ${getPriorityColor(highlight.priority)}`}>
                   {highlight.priority}
                 </Badge>
               )}
             </div>
-            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+              <Clock className="w-4 h-4" />
               <span>{highlight.time}</span>
             </div>
           </div>
           
           {highlight.attendees && (
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <Users className="w-3 h-3" />
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <Users className="w-4 h-4" />
               <span>{highlight.attendees} attendees</span>
             </div>
           )}
           
           {highlight.employee && (
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <User className="w-3 h-3" />
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <User className="w-4 h-4" />
               <span>{highlight.employee}</span>
             </div>
           )}
           
           {highlight.project && (
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <Briefcase className="w-3 h-3" />
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <Briefcase className="w-4 h-4" />
               <span>{highlight.project}</span>
             </div>
           )}
           
           {highlight.department && (
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <Building className="w-3 h-3" />
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <Building className="w-4 h-4" />
               <span>{highlight.department}</span>
             </div>
           )}
@@ -676,7 +788,7 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
 
         {/* Highlights Grid */}
         {view === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredHighlights.map((highlight) => renderHighlightCard(highlight))}
           </div>
         ) : (
@@ -685,6 +797,353 @@ const HighlightsDay: React.FC<HighlightsDayProps> = ({
             {filteredHighlights.map((highlight) => renderHighlightCard(highlight))}
           </div>
         )}
+
+        {/* Add Highlight Modal */}
+        <CommonDialog
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+          title="Add New Highlight"
+          subtitle="Create a new highlight for the day"
+          icon={Zap}
+          maxWidth="max-w-6xl"
+        >
+          <div className="space-y-6">
+            <CommonFormGrid cols={2}>
+              <CommonInput
+                id="title"
+                label="Highlight Title"
+                value={highlightForm.title}
+                onChange={(value) => handleHighlightFormChange('title', value)}
+                placeholder="Enter highlight title"
+                required
+              />
+              <CommonInput
+                id="time"
+                label="Time"
+                value={highlightForm.time}
+                onChange={(value) => handleHighlightFormChange('time', value)}
+                placeholder="10:00 AM"
+                required
+              />
+              <CommonSelect
+                id="type"
+                label="Type"
+                value={highlightForm.type}
+                onValueChange={(value) => handleHighlightFormChange('type', value)}
+                placeholder="Select type"
+                required
+                options={[
+                  { value: "meeting", label: "Meeting" },
+                  { value: "kudos", label: "Kudos" },
+                  { value: "delay", label: "Delay" },
+                  { value: "reminder", label: "Reminder" },
+                  { value: "achievement", label: "Achievement" },
+                  { value: "announcement", label: "Announcement" }
+                ]}
+              />
+              <CommonSelect
+                id="status"
+                label="Status"
+                value={highlightForm.status}
+                onValueChange={(value) => handleHighlightFormChange('status', value)}
+                placeholder="Select status"
+                required
+                options={[
+                  { value: "upcoming", label: "Upcoming" },
+                  { value: "completed", label: "Completed" },
+                  { value: "pending", label: "Pending" },
+                  { value: "overdue", label: "Overdue" }
+                ]}
+              />
+              <CommonSelect
+                id="priority"
+                label="Priority"
+                value={highlightForm.priority}
+                onValueChange={(value) => handleHighlightFormChange('priority', value)}
+                placeholder="Select priority"
+                options={[
+                  { value: "high", label: "High" },
+                  { value: "medium", label: "Medium" },
+                  { value: "low", label: "Low" }
+                ]}
+              />
+              <CommonInput
+                id="attendees"
+                label="Attendees"
+                value={highlightForm.attendees}
+                onChange={(value) => handleHighlightFormChange('attendees', value)}
+                placeholder="Number of attendees"
+                type="number"
+              />
+              <CommonInput
+                id="employee"
+                label="Employee"
+                value={highlightForm.employee}
+                onChange={(value) => handleHighlightFormChange('employee', value)}
+                placeholder="Employee name"
+              />
+              <CommonInput
+                id="project"
+                label="Project"
+                value={highlightForm.project}
+                onChange={(value) => handleHighlightFormChange('project', value)}
+                placeholder="Project name"
+              />
+              <CommonInput
+                id="department"
+                label="Department"
+                value={highlightForm.department}
+                onChange={(value) => handleHighlightFormChange('department', value)}
+                placeholder="Department name"
+              />
+            </CommonFormGrid>
+            
+            <CommonTextarea
+              id="description"
+              label="Description"
+              value={highlightForm.description}
+              onChange={(value) => handleHighlightFormChange('description', value)}
+              placeholder="Describe the highlight in detail..."
+              required
+              rows={4}
+            />
+            
+            <CommonFormActions>
+              <CommonButton
+                variant="outline"
+                onClick={() => {
+                  setHighlightForm({
+                    title: '',
+                    description: '',
+                    type: '',
+                    status: '',
+                    priority: '',
+                    time: '',
+                    employee: '',
+                    project: '',
+                    department: '',
+                    attendees: ''
+                  });
+                  setShowAddModal(false);
+                }}
+              >
+                Cancel
+              </CommonButton>
+              <CommonButton
+                onClick={handleAddHighlightSubmit}
+              >
+                Add Highlight
+              </CommonButton>
+            </CommonFormActions>
+          </div>
+        </CommonDialog>
+
+        {/* Highlight Details Modal */}
+        <CommonDialog
+          open={showHighlightDetails}
+          onOpenChange={setShowHighlightDetails}
+          title={selectedHighlight?.title || "Highlight Details"}
+          subtitle="View complete highlight information"
+          icon={Eye}
+          maxWidth="max-w-2xl"
+        >
+          {selectedHighlight && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Type</Label>
+                  <p className="text-sm">{selectedHighlight.type}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <p className="text-sm">{selectedHighlight.status}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Time</Label>
+                  <p className="text-sm">{selectedHighlight.time}</p>
+                </div>
+                {selectedHighlight.priority && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Priority</Label>
+                    <p className="text-sm">{selectedHighlight.priority}</p>
+                  </div>
+                )}
+                {selectedHighlight.employee && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Employee</Label>
+                    <p className="text-sm">{selectedHighlight.employee}</p>
+                  </div>
+                )}
+                {selectedHighlight.project && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Project</Label>
+                    <p className="text-sm">{selectedHighlight.project}</p>
+                  </div>
+                )}
+                {selectedHighlight.department && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Department</Label>
+                    <p className="text-sm">{selectedHighlight.department}</p>
+                  </div>
+                )}
+                {selectedHighlight.attendees && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Attendees</Label>
+                    <p className="text-sm">{selectedHighlight.attendees}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Description</Label>
+                <p className="text-sm mt-1">{selectedHighlight.description}</p>
+              </div>
+              
+              <CommonFormActions>
+                <CommonButton
+                  variant="outline"
+                  onClick={() => setShowHighlightDetails(false)}
+                >
+                  Close
+                </CommonButton>
+                <CommonButton
+                  onClick={() => {
+                    setShowHighlightDetails(false);
+                    handleEditHighlight(selectedHighlight);
+                  }}
+                >
+                  Edit Highlight
+                </CommonButton>
+              </CommonFormActions>
+            </div>
+          )}
+        </CommonDialog>
+
+        {/* Edit Highlight Modal */}
+        <CommonDialog
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          title="Edit Highlight"
+          subtitle="Modify highlight information"
+          icon={Edit}
+          maxWidth="max-w-6xl"
+        >
+          <div className="space-y-6">
+            <CommonFormGrid cols={2}>
+              <CommonInput
+                id="title"
+                label="Highlight Title"
+                value={highlightForm.title}
+                onChange={(value) => handleHighlightFormChange('title', value)}
+                placeholder="Enter highlight title"
+                required
+              />
+              <CommonInput
+                id="time"
+                label="Time"
+                value={highlightForm.time}
+                onChange={(value) => handleHighlightFormChange('time', value)}
+                placeholder="10:00 AM"
+                required
+              />
+              <CommonSelect
+                id="type"
+                label="Type"
+                value={highlightForm.type}
+                onValueChange={(value) => handleHighlightFormChange('type', value)}
+                placeholder="Select type"
+                required
+                options={[
+                  { value: "meeting", label: "Meeting" },
+                  { value: "kudos", label: "Kudos" },
+                  { value: "delay", label: "Delay" },
+                  { value: "reminder", label: "Reminder" },
+                  { value: "achievement", label: "Achievement" },
+                  { value: "announcement", label: "Announcement" }
+                ]}
+              />
+              <CommonSelect
+                id="status"
+                label="Status"
+                value={highlightForm.status}
+                onValueChange={(value) => handleHighlightFormChange('status', value)}
+                placeholder="Select status"
+                required
+                options={[
+                  { value: "upcoming", label: "Upcoming" },
+                  { value: "completed", label: "Completed" },
+                  { value: "pending", label: "Pending" },
+                  { value: "overdue", label: "Overdue" }
+                ]}
+              />
+              <CommonSelect
+                id="priority"
+                label="Priority"
+                value={highlightForm.priority}
+                onValueChange={(value) => handleHighlightFormChange('priority', value)}
+                placeholder="Select priority"
+                options={[
+                  { value: "high", label: "High" },
+                  { value: "medium", label: "Medium" },
+                  { value: "low", label: "Low" }
+                ]}
+              />
+              <CommonInput
+                id="attendees"
+                label="Attendees"
+                value={highlightForm.attendees}
+                onChange={(value) => handleHighlightFormChange('attendees', value)}
+                placeholder="Number of attendees"
+                type="number"
+              />
+              <CommonInput
+                id="employee"
+                label="Employee"
+                value={highlightForm.employee}
+                onChange={(value) => handleHighlightFormChange('employee', value)}
+                placeholder="Employee name"
+              />
+              <CommonInput
+                id="project"
+                label="Project"
+                value={highlightForm.project}
+                onChange={(value) => handleHighlightFormChange('project', value)}
+                placeholder="Project name"
+              />
+              <CommonInput
+                id="department"
+                label="Department"
+                value={highlightForm.department}
+                onChange={(value) => handleHighlightFormChange('department', value)}
+                placeholder="Department name"
+              />
+            </CommonFormGrid>
+            
+            <CommonTextarea
+              id="description"
+              label="Description"
+              value={highlightForm.description}
+              onChange={(value) => handleHighlightFormChange('description', value)}
+              placeholder="Describe the highlight in detail..."
+              required
+              rows={4}
+            />
+            
+            <CommonFormActions>
+              <CommonButton
+                variant="outline"
+                onClick={() => setShowEditModal(false)}
+              >
+                Cancel
+              </CommonButton>
+              <CommonButton
+                onClick={handleEditSubmit}
+              >
+                Update Highlight
+              </CommonButton>
+            </CommonFormActions>
+          </div>
+        </CommonDialog>
       </Card>
     </TooltipProvider>
   );
