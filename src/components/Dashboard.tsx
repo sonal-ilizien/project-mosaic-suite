@@ -36,6 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState } from "react";
 import AddTaskModal from "./AddTaskModal";
 import NewProjectModal from "./NewProjectModal";
+import MiniCalendar from "./MiniCalendar";
 import { useProjects } from "../contexts/ProjectContext";
 
 // Import the interfaces from the modal components
@@ -121,6 +122,7 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
   const [showTaskDetailsModal, setShowTaskDetailsModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [selectedScheduleTask, setSelectedScheduleTask] = useState<ScheduleTask | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [upcomingTasks, setUpcomingTasks] = useState<ScheduleTask[]>([
     { 
       title: 'Sprint Planning Meeting', 
@@ -391,6 +393,11 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
     console.log('Downloading attachment:', attachment.name);
   };
 
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    console.log('Selected date:', date.toDateString());
+  };
+
   return (
     <TooltipProvider>
       <div 
@@ -501,7 +508,7 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Recent Projects */}
           <div className="lg:col-span-2">
                         <Card className="p-6 border-0 shadow-xl h-full" style={{ 
@@ -686,6 +693,15 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
                 </div>
               </div>
             </Card>
+          </div>
+
+          {/* Mini Calendar */}
+          <div className="lg:col-span-1">
+            <MiniCalendar 
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              className="h-full"
+            />
           </div>
         </div>
       </div>
