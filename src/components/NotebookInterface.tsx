@@ -18,6 +18,17 @@ interface AgileTask {
   due_date?: string;
 }
 
+interface WorkLog {
+  id: number;
+  task: number;
+  user: number;
+  user_name: string;
+  start_time: string;
+  end_time: string;
+  description: string;
+  duration_hours: number;
+}
+
 interface NotebookEntry {
   id: string;
   date: string;
@@ -44,7 +55,9 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
   const [title, setTitle] = useState('');
   const [selectedTaskId, setSelectedTaskId] = useState<string>('');
   const [tasks, setTasks] = useState<AgileTask[]>([]);
+  const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingWorkLogs, setLoadingWorkLogs] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load entries from localStorage on component mount
@@ -76,23 +89,43 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     fetchTasks();
   }, []);
 
-  // Find or create entry for selected date
-  useEffect(() => {
-    const dateStr = selectedDate.toISOString().split('T')[0];
-    const existingEntry = entries.find(entry => entry.date === dateStr);
-    
-    if (existingEntry) {
-      setCurrentEntry(existingEntry);
-      setContent(existingEntry.content);
-      setTitle(existingEntry.title || '');
-      setSelectedTaskId(existingEntry.taskId?.toString() || '');
-    } else {
-      setCurrentEntry(null);
-      setContent('');
-      setTitle('');
-      setSelectedTaskId('');
+  // Fetch work logs for selected task
+  const fetchWorkLogs = async (taskId: number) => {
+    try {
+      setLoadingWorkLogs(true);
+      const response = await api.get(`/agile/tasks/1/work-logs/`);
+      console.log('Work logs response:', response);
+      setWorkLogs(response.data.results.data || []);
+    } catch (error) {
+      console.error('Error fetching work logs:', error);
+      setWorkLogs([]);
+    } finally {
+      setLoadingWorkLogs(false);
     }
-  }, [selectedDate, entries]);
+  };
+
+  // Fetch work logs when task is selected
+  useEffect(() => {
+    fetchWorkLogs(parseInt(selectedTaskId));
+  }, [selectedTaskId]);
+
+  // // Find or create entry for selected date
+  // useEffect(() => {
+  //   const dateStr = selectedDate.toISOString().split('T')[0];
+  //   const existingEntry = entries.find(entry => entry.date === dateStr);
+    
+  //   if (existingEntry) {
+  //     setCurrentEntry(existingEntry);
+  //     setContent(existingEntry.content);
+  //     setTitle(existingEntry.title || '');
+  //     setSelectedTaskId(existingEntry.taskId?.toString() || '');
+  //   } else {
+  //     setCurrentEntry(null);
+  //     setContent('');
+  //     setTitle('');
+  //     setSelectedTaskId('');
+  //   }
+  // }, [selectedDate, entries]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -199,6 +232,30 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     return text.length;
   };
 
+  const formatWorkLogTime = (startTime: string, endTime: string) => {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const startStr = start.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    const endStr = end.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    return `${startStr} - ${endStr}`;
+  };
+
+  const formatWorkLogDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   return (
     <Card className={`p-6 h-full ${className}`}>
       {/* Header */}
@@ -298,49 +355,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            {currentEntry ? (
-              <div className="w-full space-y-6 px-2 py-2 overflow-y-auto">
-                {/* Entry Header */}
-                <div className="border-b border-gray-200 pb-4">
-                  <h4 className="text-xl font-semibold text-gray-800 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-                    {currentEntry.title}
-                  </h4>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(selectedDate)}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>Updated {new Date(currentEntry.updatedAt).toLocaleTimeString()}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <User className="w-4 h-4" />
-                      <span>{getWordCount(currentEntry.content)} words</span>
-                    </div>
-                    {currentEntry.taskId && (
-                      <div className="flex items-center space-x-1">
-                        <FolderOpen className="w-4 h-4" />
-                        <span>
-                          {tasks.find(t => t.id === currentEntry.taskId)?.title || 'Task'}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Entry Content */}
-                <div 
-                  className="prose prose-gray max-w-none"
-                  style={{ fontFamily: 'Georgia, serif', lineHeight: '1.8' }}
-                >
-                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                    {currentEntry.content}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center space-y-4">
+            <div className="text-center space-y-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                   <FileText className="w-8 h-8 text-gray-400" />
                 </div>
@@ -357,11 +372,47 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
                     Start Writing
                   </Button>
                 </div>
-              </div>
-            )}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Work Logs Display */}
+      {workLogs.length > 0 && !isWriting && (
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-semibold text-gray-700">Previous Work Logs</h4>
+            <span className="text-xs text-gray-500">{workLogs.length} entries</span>
+          </div>
+          <div className="space-y-3 max-h-48 overflow-y-auto">
+            {workLogs.map((workLog) => (
+              <div key={workLog.id} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {formatWorkLogDate(workLog.start_time)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatWorkLogTime(workLog.start_time, workLog.end_time)}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs text-gray-500">{workLog.user_name}</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                      {workLog.duration_hours}h
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {workLog.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Footer with writing tips */}
       {isWriting && (
