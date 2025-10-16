@@ -74,7 +74,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       setLoading(true);
       const response = await api.get('/agile/tasks/');
       console.log(response)
-      setTasks(response.data.results.data);
+      setTasks(response.data.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       // Fallback to empty array if API fails
@@ -95,7 +95,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       setLoadingWorkLogs(true);
       const response = await api.get(`/agile/tasks/1/work-logs/`);
       console.log('Work logs response:', response);
-      setWorkLogs(response.data.results.data || []);
+      setWorkLogs(response.data.data || []);
     } catch (error) {
       console.error('Error fetching work logs:', error);
       setWorkLogs([]);
