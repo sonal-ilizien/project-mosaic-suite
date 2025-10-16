@@ -37,6 +37,7 @@ import { useState } from "react";
 import AddTaskModal from "./AddTaskModal";
 import NewProjectModal from "./NewProjectModal";
 import MiniCalendar from "./MiniCalendar";
+import NotebookInterface from "./NotebookInterface";
 import { useProjects } from "../contexts/ProjectContext";
 
 // Import the interfaces from the modal components
@@ -508,7 +509,7 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Projects */}
           <div className="lg:col-span-2">
                         <Card className="p-6 border-0 shadow-xl h-full" style={{ 
@@ -695,13 +696,38 @@ const Dashboard = ({ onProjectSelect }: { onProjectSelect?: (project: Record<str
             </Card>
           </div>
 
-          {/* Mini Calendar */}
-          <div className="lg:col-span-1">
-            <MiniCalendar 
-              selectedDate={selectedDate}
-              onDateSelect={handleDateSelect}
-              className="h-full"
-            />
+        
+        </div>
+
+        {/* Mini-Diary Style Section */}
+        <div className="mt-8">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Work Progress</h2>
+              <p className="text-muted-foreground">Track your daily work and progress</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+            {/* Calendar */}
+            <div className="lg:col-span-1">
+              <MiniCalendar 
+                selectedDate={selectedDate}
+                onDateSelect={handleDateSelect}
+                className="h-full"
+              />
+            </div>
+
+            {/* Notebook Interface */}
+            <div className="lg:col-span-2">
+              <NotebookInterface 
+                selectedDate={selectedDate}
+                className="h-full"
+              />
+            </div>
           </div>
         </div>
       </div>
