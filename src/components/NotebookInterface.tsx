@@ -1,14 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Save, FileText, Calendar, Clock, User } from 'lucide-react';
+import { Save, FileText, Calendar, Clock, User, FolderOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import api from '../services/api';
+
+interface AgileTask {
+  id: number;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  project_name?: string;
+  assignee_name?: string;
+  sprint_name?: string;
+  due_date?: string;
+}
 
 interface NotebookEntry {
   id: string;
   date: string;
   content: string;
   title?: string;
+  taskId?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +42,9 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
   const [isWriting, setIsWriting] = useState(false);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
+  const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+  const [tasks, setTasks] = useState<AgileTask[]>([]);
+  const [loading, setLoading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load entries from localStorage on component mount
@@ -35,6 +53,27 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     if (savedEntries) {
       setEntries(JSON.parse(savedEntries));
     }
+  }, []);
+
+  // Fetch tasks from Django API
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/agile/tasks/');
+      console.log(response)
+      setTasks(response.data.results.data);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      // Fallback to empty array if API fails
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load tasks on component mount
+  useEffect(() => {
+    fetchTasks();
   }, []);
 
   // Find or create entry for selected date
@@ -46,10 +85,12 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       setCurrentEntry(existingEntry);
       setContent(existingEntry.content);
       setTitle(existingEntry.title || '');
+      setSelectedTaskId(existingEntry.taskId?.toString() || '');
     } else {
       setCurrentEntry(null);
       setContent('');
       setTitle('');
+      setSelectedTaskId('');
     }
   }, [selectedDate, entries]);
 
@@ -64,11 +105,12 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     }
   }, [content, title]);
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (!content.trim()) return;
 
     const dateStr = selectedDate.toISOString().split('T')[0];
     const now = new Date().toISOString();
+    const taskId = selectedTaskId ? parseInt(selectedTaskId) : undefined;
 
     let updatedEntry: NotebookEntry;
 
@@ -77,6 +119,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
         ...currentEntry,
         content: content.trim(),
         title: title.trim() || `Entry for ${selectedDate.toLocaleDateString()}`,
+        taskId,
         updatedAt: now
       };
       
@@ -90,6 +133,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
         date: dateStr,
         content: content.trim(),
         title: title.trim() || `Entry for ${selectedDate.toLocaleDateString()}`,
+        taskId,
         createdAt: now,
         updatedAt: now
       };
@@ -99,6 +143,31 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
 
     setCurrentEntry(updatedEntry);
     localStorage.setItem('notebook-entries', JSON.stringify([...entries, updatedEntry]));
+
+    // Save to Django backend if task is selected
+    if (taskId) {
+      try {
+        await saveWorkLogToBackend(updatedEntry, taskId);
+      } catch (error) {
+        console.error('Error saving work log to backend:', error);
+      }
+    }
+  };
+
+  const saveWorkLogToBackend = async (entry: NotebookEntry, taskId: number) => {
+    try {
+      const workLogData = {
+        start_time: new Date(entry.date + 'T09:00:00').toISOString(), // Default start time
+        end_time: new Date(entry.date + 'T17:00:00').toISOString(), // Default end time
+        description: entry.content
+      };
+
+      await api.post(`agile/tasks/${taskId}/work-logs/`, workLogData);
+      console.log('Work log saved to backend successfully');
+    } catch (error) {
+      console.error('Error saving work log:', error);
+      throw error;
+    }
   };
 
   const handleStartWriting = () => {
@@ -179,6 +248,26 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       <div className="h-full w-full flex overflow-hidden">
         {isWriting ? (
           <div className="w-full flex flex-col space-y-4 overflow-hidden">
+            {/* Task Selection */}
+            <div className="px-2">
+              <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a task (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tasks.map((task) => (
+                    <SelectItem key={task.id} value={task.id.toString()}>
+                      <div className="flex items-center space-x-2">
+                        <FolderOpen className="w-4 h-4 text-gray-500" />
+                        <span>{task.title}</span>
+                        <span className="text-xs text-gray-400">({task.status})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Title Input */}
             <div className="px-2">
               <input
@@ -229,6 +318,14 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
                       <User className="w-4 h-4" />
                       <span>{getWordCount(currentEntry.content)} words</span>
                     </div>
+                    {currentEntry.taskId && (
+                      <div className="flex items-center space-x-1">
+                        <FolderOpen className="w-4 h-4" />
+                        <span>
+                          {tasks.find(t => t.id === currentEntry.taskId)?.title || 'Task'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
