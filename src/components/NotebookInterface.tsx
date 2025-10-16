@@ -6,6 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import api from '../services/api';
 
+interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  status: string;
+}
+
 interface AgileTask {
   id: number;
   title: string;
@@ -53,7 +60,11 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
   const [isWriting, setIsWriting] = useState(false);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+  const [selectedWorkLogProjectId, setSelectedWorkLogProjectId] = useState<string>('');
+  const [selectedWorkLogTaskId, setSelectedWorkLogTaskId] = useState<string>('');
+  const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<AgileTask[]>([]);
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,13 +79,26 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     }
   }, []);
 
+  // Fetch projects from Django API
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get('/projects/');
+      console.log('Projects response:', response);
+      setProjects(response.data?.data || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      setProjects([]);
+    }
+  };
+
   // Fetch tasks from Django API
-  const fetchTasks = async () => {
+  const fetchTasks = async (projectId?: number) => {
     try {
       setLoading(true);
-      const response = await api.get('/agile/tasks/');
-      console.log(response)
-      setTasks(response.data.data);
+      const url = projectId ? `/agile/tasks/?project=${projectId}` : '/agile/tasks/';
+      const response = await api.get(url);
+      console.log('Tasks response:', response);
+      setTasks(response.data?.data || []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       // Fallback to empty array if API fails
@@ -84,18 +108,21 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     }
   };
 
-  // Load tasks on component mount
+  // Load projects and tasks on component mount
   useEffect(() => {
+    fetchProjects();
     fetchTasks();
   }, []);
 
   // Fetch work logs for selected task
-  const fetchWorkLogs = async (taskId: number) => {
+  const fetchWorkLogs = async (taskId?: number, projectId?: number) => {
     try {
       setLoadingWorkLogs(true);
-      const response = await api.get(`/agile/tasks/1/work-logs/`);
+      let url = `/agile/tasks/${taskId}/work-logs/`; // Base URL for all work logs
+
+      const response = await api.get(url);
       console.log('Work logs response:', response);
-      setWorkLogs(response.data.data || []);
+      setWorkLogs(response.data?.data || []);
     } catch (error) {
       console.error('Error fetching work logs:', error);
       setWorkLogs([]);
@@ -104,10 +131,22 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     }
   };
 
-  // Fetch work logs when task is selected
+  // Fetch tasks when project is selected
   useEffect(() => {
-    fetchWorkLogs(parseInt(selectedTaskId));
-  }, [selectedTaskId]);
+    if (selectedProjectId) {
+      fetchTasks(parseInt(selectedProjectId));
+      setSelectedTaskId(''); // Reset task selection when project changes
+    } else {
+      fetchTasks();
+    }
+  }, [selectedProjectId]);
+
+  // Fetch work logs when task or work log project is selected
+  useEffect(() => {
+    const taskId = selectedWorkLogTaskId ? parseInt(selectedWorkLogTaskId) : undefined;
+    const projectId = selectedWorkLogProjectId ? parseInt(selectedWorkLogProjectId) : undefined;
+    fetchWorkLogs(taskId, projectId);
+  }, [selectedWorkLogTaskId, selectedWorkLogProjectId]);
 
   // // Find or create entry for selected date
   // useEffect(() => {
@@ -195,8 +234,13 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
         description: entry.content
       };
 
-      await api.post(`agile/tasks/${taskId}/work-logs/`, workLogData);
+      const url = selectedWorkLogProjectId 
+        ? `agile/tasks/${taskId}/work-logs/?project=${selectedWorkLogProjectId}` 
+        : `agile/tasks/${taskId}/work-logs/`;
+      
+      await api.post(url, workLogData);
       console.log('Work log saved to backend successfully');
+      fetchWorkLogs(taskId, selectedWorkLogProjectId ? parseInt(selectedWorkLogProjectId) : undefined);
     } catch (error) {
       console.error('Error saving work log:', error);
       throw error;
@@ -255,7 +299,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       day: 'numeric'
     });
   };
-
+  
   return (
     <Card className={`p-6 h-full ${className}`}>
       {/* Header */}
@@ -305,14 +349,41 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       <div className="h-full w-full flex overflow-hidden">
         {isWriting ? (
           <div className="w-full flex flex-col space-y-4 overflow-hidden">
-            {/* Task Selection */}
-            <div className="px-2">
-              <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a task (optional)" />
-                </SelectTrigger>
+            
+            {/* Project and Task Selection */}
+            <div className="flex items-center space-x-2">
+              {/* Project Selection */}
+              <div className="px-2">
+                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a project (optional)" />
+                  </SelectTrigger>
                 <SelectContent>
-                  {tasks.map((task) => (
+                  {projects && projects.length > 0 ? projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      <div className="flex items-center space-x-2">
+                        <FolderOpen className="w-4 h-4 text-gray-500" />
+                        <span>{project.name}</span>
+                        <span className="text-xs text-gray-400">({project.status})</span>
+                      </div>
+                    </SelectItem>
+                  )) : (
+                    <SelectItem value="hello" disabled>
+                      <span className="text-gray-500">No projects available</span>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+                </Select>
+              </div>
+
+              {/* Task Selection */}
+              <div className="px-2">
+                <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a task (optional)" />
+                  </SelectTrigger>
+                <SelectContent>
+                  {tasks && tasks.length > 0 ? tasks.map((task) => (
                     <SelectItem key={task.id} value={task.id.toString()}>
                       <div className="flex items-center space-x-2">
                         <FolderOpen className="w-4 h-4 text-gray-500" />
@@ -320,10 +391,16 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
                         <span className="text-xs text-gray-400">({task.status})</span>
                       </div>
                     </SelectItem>
-                  ))}
+                  )) : (
+                    <SelectItem value="hello" disabled>
+                      <span className="text-gray-500">No tasks available</span>
+                    </SelectItem>
+                  )}
                 </SelectContent>
-              </Select>
+                </Select>
+              </div>
             </div>
+            
 
             {/* Title Input */}
             <div className="px-2">
@@ -378,13 +455,62 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       </div>
 
       {/* Work Logs Display */}
-      {workLogs.length > 0 && !isWriting && (
+      {!isWriting && (
         <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-gray-700">Previous Work Logs</h4>
-            <span className="text-xs text-gray-500">{workLogs.length} entries</span>
+          {/* Work Log Project Filter */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-semibold text-gray-700">Work Logs</h4>
+              <div className="flex items-center space-x-2">
+                {/* Project Filter */}
+                <Select value={selectedWorkLogProjectId} onValueChange={setSelectedWorkLogProjectId}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hello">All Projects</SelectItem>
+                    {projects && projects.length > 0 ? projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        <div className="flex items-center space-x-2">
+                          <FolderOpen className="w-4 h-4 text-gray-500" />
+                          <span>{project.name}</span>
+                        </div>
+                      </SelectItem>
+                    )) : (
+                      <SelectItem value="hello" disabled>
+                        <span className="text-gray-500">No projects available</span>
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {/* Task Filter */}
+                <Select value={selectedWorkLogTaskId} onValueChange={setSelectedWorkLogTaskId}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by task" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hello">All Tasks</SelectItem>
+                    {tasks && tasks.length > 0 ? tasks.map((task) => (
+                      <SelectItem key={task.id} value={task.id.toString()}>
+                        <div className="flex items-center space-x-2">
+                          <FolderOpen className="w-4 h-4 text-gray-500" />
+                          <span>{task.title}</span>
+                        </div>
+                      </SelectItem>
+                    )) : (
+                      <SelectItem value="hello" disabled>
+                        <span className="text-gray-500">No tasks available</span>
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          <div className="space-y-3 max-h-48 overflow-y-auto">
+
+          {workLogs.length > 0 ? (
+            <div className="space-y-3 max-h-48 overflow-y-auto">
             {workLogs.map((workLog) => (
               <div key={workLog.id} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                 <div className="flex items-start justify-between mb-2">
@@ -410,7 +536,14 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
                 </p>
               </div>
             ))}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+              <p className="text-sm">No work logs found</p>
+              <p className="text-xs">Select a task to view work logs</p>
+            </div>
+          )}
         </div>
       )}
 
