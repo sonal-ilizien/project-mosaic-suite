@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Save, FileText, Calendar, Clock, User, FolderOpen } from 'lucide-react';
+import { Save, FileText, Calendar, Clock, User, FolderOpen, Plus, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import api from '../services/api';
 
@@ -36,12 +35,20 @@ interface WorkLog {
   duration_hours: number;
 }
 
+interface WorkLogEntry {
+  id: string;
+  projectId: number;
+  taskId: number;
+  startTime: string;
+  endTime: string;
+  description: string;
+}
+
 interface NotebookEntry {
   id: string;
   date: string;
-  content: string;
   title?: string;
-  taskId?: number;
+  workLogs: WorkLogEntry[];
   createdAt: string;
   updatedAt: string;
 }
@@ -58,18 +65,15 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [currentEntry, setCurrentEntry] = useState<NotebookEntry | null>(null);
   const [isWriting, setIsWriting] = useState(false);
-  const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [selectedTaskId, setSelectedTaskId] = useState<string>('');
   const [selectedWorkLogProjectId, setSelectedWorkLogProjectId] = useState<string>('');
   const [selectedWorkLogTaskId, setSelectedWorkLogTaskId] = useState<string>('');
+  const [workLogEntries, setWorkLogEntries] = useState<WorkLogEntry[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<AgileTask[]>([]);
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingWorkLogs, setLoadingWorkLogs] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load entries from localStorage on component mount
   useEffect(() => {
@@ -131,16 +135,6 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     }
   };
 
-  // Fetch tasks when project is selected
-  useEffect(() => {
-    if (selectedProjectId) {
-      fetchTasks(parseInt(selectedProjectId));
-      setSelectedTaskId(''); // Reset task selection when project changes
-    } else {
-      fetchTasks();
-    }
-  }, [selectedProjectId]);
-
   // Fetch work logs when task or work log project is selected
   useEffect(() => {
     const taskId = selectedWorkLogTaskId ? parseInt(selectedWorkLogTaskId) : undefined;
@@ -168,30 +162,28 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
 
   // Auto-save functionality
   useEffect(() => {
-    if (content.trim() && currentEntry) {
+    if (workLogEntries.length > 0 && currentEntry) {
       const timeoutId = setTimeout(() => {
         saveEntry();
       }, 2000); // Auto-save after 2 seconds of inactivity
 
       return () => clearTimeout(timeoutId);
     }
-  }, [content, title]);
+  }, [workLogEntries, title]);
 
   const saveEntry = async () => {
-    if (!content.trim()) return;
+    if (workLogEntries.length === 0) return;
 
     const dateStr = selectedDate.toISOString().split('T')[0];
     const now = new Date().toISOString();
-    const taskId = selectedTaskId ? parseInt(selectedTaskId) : undefined;
 
     let updatedEntry: NotebookEntry;
 
     if (currentEntry) {
       updatedEntry = {
         ...currentEntry,
-        content: content.trim(),
-        title: title.trim() || `Entry for ${selectedDate.toLocaleDateString()}`,
-        taskId,
+        title: title.trim() || `Work Logs for ${selectedDate.toLocaleDateString()}`,
+        workLogs: workLogEntries,
         updatedAt: now
       };
       
@@ -203,9 +195,8 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       updatedEntry = {
         id: Date.now().toString(),
         date: dateStr,
-        content: content.trim(),
-        title: title.trim() || `Entry for ${selectedDate.toLocaleDateString()}`,
-        taskId,
+        title: title.trim() || `Work Logs for ${selectedDate.toLocaleDateString()}`,
+        workLogs: workLogEntries,
         createdAt: now,
         updatedAt: now
       };
@@ -216,42 +207,67 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
     setCurrentEntry(updatedEntry);
     localStorage.setItem('notebook-entries', JSON.stringify([...entries, updatedEntry]));
 
-    // Save to Django backend if task is selected
-    if (taskId) {
+    // Save work logs to backend
+    if (workLogEntries.length > 0) {
       try {
-        await saveWorkLogToBackend(updatedEntry, taskId);
+        await saveMultipleWorkLogsToBackend(workLogEntries, dateStr);
+        setWorkLogEntries([]); // Clear work log entries after saving
       } catch (error) {
-        console.error('Error saving work log to backend:', error);
+        console.error('Error saving work logs to backend:', error);
       }
     }
   };
 
-  const saveWorkLogToBackend = async (entry: NotebookEntry, taskId: number) => {
+  // Save multiple work logs to backend
+  const saveMultipleWorkLogsToBackend = async (workLogs: WorkLogEntry[], dateStr: string) => {
     try {
-      const workLogData = {
-        start_time: new Date(entry.date + 'T09:00:00').toISOString(), // Default start time
-        end_time: new Date(entry.date + 'T17:00:00').toISOString(), // Default end time
-        description: entry.content
-      };
+      const workLogDataArray = workLogs.map(workLog => ({
+        task: workLog.taskId,
+        start_time: new Date(`${dateStr}T${workLog.startTime}:00`).toISOString(),
+        end_time: new Date(`${dateStr}T${workLog.endTime}:00`).toISOString(),
+        description: workLog.description
+      }));
 
-      const url = selectedWorkLogProjectId 
-        ? `agile/tasks/${taskId}/work-logs/?project=${selectedWorkLogProjectId}` 
-        : `agile/tasks/${taskId}/work-logs/`;
+      await api.post('/agile/work-logs/', workLogDataArray);
+      console.log('Multiple work logs saved to backend successfully');
       
-      await api.post(url, workLogData);
-      console.log('Work log saved to backend successfully');
-      fetchWorkLogs(taskId, selectedWorkLogProjectId ? parseInt(selectedWorkLogProjectId) : undefined);
+      // Refresh work logs after saving
+      const taskId = selectedWorkLogTaskId ? parseInt(selectedWorkLogTaskId) : undefined;
+      const projectId = selectedWorkLogProjectId ? parseInt(selectedWorkLogProjectId) : undefined;
+      fetchWorkLogs(taskId, projectId);
     } catch (error) {
-      console.error('Error saving work log:', error);
+      console.error('Error saving multiple work logs:', error);
       throw error;
     }
   };
 
+  // Add work log entry
+  const addWorkLogEntry = () => {
+    const newEntry: WorkLogEntry = {
+      id: Date.now().toString(),
+      projectId: 0,
+      taskId: 0,
+      startTime: '09:00',
+      endTime: '17:00',
+      description: ''
+    };
+    setWorkLogEntries([...workLogEntries, newEntry]);
+  };
+
+  // Update work log entry
+  const updateWorkLogEntry = (id: string, updates: Partial<WorkLogEntry>) => {
+    setWorkLogEntries(workLogEntries.map(entry => 
+      entry.id === id ? { ...entry, ...updates } : entry
+    ));
+  };
+
+  // Remove work log entry
+  const removeWorkLogEntry = (id: string) => {
+    setWorkLogEntries(workLogEntries.filter(entry => entry.id !== id));
+  };
+
   const handleStartWriting = () => {
     setIsWriting(true);
-    setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 100);
   };
 
   const handleSave = () => {
@@ -266,10 +282,6 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const getWordCount = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
 
   const getCharacterCount = (text: string) => {
@@ -317,8 +329,7 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
         <div className="flex items-center space-x-2">
           {isWriting && (
             <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-              <span>{getWordCount(content)} words</span>
-              <span>{getCharacterCount(content)} characters</span>
+              <span>{workLogEntries.length} work logs</span>
             </div>
           )}
           
@@ -349,85 +360,120 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
       <div className="h-full w-full flex overflow-hidden">
         {isWriting ? (
           <div className="w-full flex flex-col space-y-4 overflow-hidden">
-            
-            {/* Project and Task Selection */}
-            <div className="flex items-center space-x-2">
-              {/* Project Selection */}
-              <div className="px-2">
-                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a project (optional)" />
-                  </SelectTrigger>
-                <SelectContent>
-                  {projects && projects.length > 0 ? projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      <div className="flex items-center space-x-2">
-                        <FolderOpen className="w-4 h-4 text-gray-500" />
-                        <span>{project.name}</span>
-                        <span className="text-xs text-gray-400">({project.status})</span>
-                      </div>
-                    </SelectItem>
-                  )) : (
-                    <SelectItem value="hello" disabled>
-                      <span className="text-gray-500">No projects available</span>
-                    </SelectItem>
-                  )}
-                </SelectContent>
-                </Select>
+            {/* Work Log Entries */}
+            <div className="px-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-gray-700">Work Logs</h4>
+                <Button
+                  onClick={addWorkLogEntry}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Work Log
+                </Button>
               </div>
 
-              {/* Task Selection */}
-              <div className="px-2">
-                <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a task (optional)" />
-                  </SelectTrigger>
-                <SelectContent>
-                  {tasks && tasks.length > 0 ? tasks.map((task) => (
-                    <SelectItem key={task.id} value={task.id.toString()}>
-                      <div className="flex items-center space-x-2">
-                        <FolderOpen className="w-4 h-4 text-gray-500" />
-                        <span>{task.title}</span>
-                        <span className="text-xs text-gray-400">({task.status})</span>
+              {workLogEntries.length > 0 && (
+                <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  {workLogEntries.map((workLog) => (
+                    <div key={workLog.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          {/* Project Selection */}
+                          <Select 
+                            value={workLog.projectId.toString()} 
+                            onValueChange={(value) => updateWorkLogEntry(workLog.id, { projectId: parseInt(value), taskId: 0 })}
+                          >
+                            <SelectTrigger className="w-48">
+                              <SelectValue placeholder="Select project" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {projects && projects.length > 0 ? projects.map((project) => (
+                                <SelectItem key={project.id} value={project.id.toString()}>
+                                  <div className="flex items-center space-x-2">
+                                    <FolderOpen className="w-4 h-4 text-gray-500" />
+                                    <span>{project.name}</span>
+                                  </div>
+                                </SelectItem>
+                              )) : (
+                                <SelectItem value="hello" disabled>
+                                  <span className="text-gray-500">No projects available</span>
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+
+                          {/* Task Selection */}
+                          <Select 
+                            value={workLog.taskId.toString()} 
+                            onValueChange={(value) => updateWorkLogEntry(workLog.id, { taskId: parseInt(value) })}
+                            disabled={workLog.projectId === 0}
+                          >
+                            <SelectTrigger className="w-48">
+                              <SelectValue placeholder="Select task" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {tasks && tasks.length > 0 ? tasks
+                                .filter(task => workLog.projectId === 0 || task.project_name === projects.find(p => p.id === workLog.projectId)?.name)
+                                .map((task) => (
+                                <SelectItem key={task.id} value={task.id.toString()}>
+                                  <div className="flex items-center space-x-2">
+                                    <FolderOpen className="w-4 h-4 text-gray-500" />
+                                    <span>{task.title}</span>
+                                  </div>
+                                </SelectItem>
+                              )) : (
+                                <SelectItem value="hello" disabled>
+                                  <span className="text-gray-500">No tasks available</span>
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          onClick={() => removeWorkLogEntry(workLog.id)}
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
                       </div>
-                    </SelectItem>
-                  )) : (
-                    <SelectItem value="hello" disabled>
-                      <span className="text-gray-500">No tasks available</span>
-                    </SelectItem>
-                  )}
-                </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
 
-            {/* Title Input */}
-            <div className="px-2">
-              <input
-                type="text"
-                placeholder="Entry title (optional)..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-2 text-lg font-medium bg-transparent border-none outline-none placeholder-gray-400 focus:placeholder-gray-300"
-                style={{ fontFamily: 'Georgia, serif' }}
-              />
-            </div>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                          <label className="text-xs text-gray-500">Start Time</label>
+                          <input
+                            type="time"
+                            value={workLog.startTime}
+                            onChange={(e) => updateWorkLogEntry(workLog.id, { startTime: e.target.value })}
+                            className="w-full p-1 text-sm border border-gray-300 rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500">End Time</label>
+                          <input
+                            type="time"
+                            value={workLog.endTime}
+                            onChange={(e) => updateWorkLogEntry(workLog.id, { endTime: e.target.value })}
+                            className="w-full p-1 text-sm border border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
 
-            {/* Content Textarea */}
-            <div className="flex-1 px-2 pb-2 overflow-hidden">
-              <Textarea
-                ref={textareaRef}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Start writing your work progress..."
-                className="w-full h-5/6 resize-none border-none outline-none bg-transparent text-gray-800 placeholder-gray-400 focus:placeholder-gray-300 p-2"
-                style={{ 
-                  fontFamily: 'Georgia, serif',
-                  lineHeight: '1.8',
-                  fontSize: '16px'
-                }}
-              />
+                      <textarea
+                        placeholder="Work description..."
+                        value={workLog.description}
+                        onChange={(e) => updateWorkLogEntry(workLog.id, { description: e.target.value })}
+                        className="w-full p-2 text-sm border border-gray-300 rounded resize-none"
+                        rows={2}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -437,16 +483,16 @@ const NotebookInterface: React.FC<NotebookInterfaceProps> = ({
                   <FileText className="w-8 h-8 text-gray-400" />
                 </div>
                 <div>
-                  <h4 className="text-lg font-medium text-gray-600 mb-2">No work progress for this date</h4>
+                  <h4 className="text-lg font-medium text-gray-600 mb-2">No work logs for this date</h4>
                   <p className="text-sm text-gray-500 mb-4">
-                    Start writing to track your work progress for {formatDate(selectedDate)}
+                    Start adding work logs to track your progress for {formatDate(selectedDate)}
                   </p>
                   <Button
                     onClick={handleStartWriting}
                     className="bg-amber-600 hover:bg-amber-700 text-white"
                   >
                     <FileText className="w-4 h-4 mr-2" />
-                    Start Writing
+                    Add Work Logs
                   </Button>
                 </div>
             </div>
