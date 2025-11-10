@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { 
-  Plus, 
-  MoreHorizontal, 
-  User, 
-  Calendar, 
+import {
+  Plus,
+  MoreHorizontal,
+  User,
+  Calendar,
   Flag,
   MessageSquare,
   Paperclip,
@@ -28,23 +28,35 @@ import {
   FileText,
   CheckCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -59,34 +71,37 @@ import { taskDataStore, Task, KanbanColumn } from "../lib/taskData";
 
 // Utility function to generate initials from any name
 const generateInitials = (name: string): string => {
-  if (!name || typeof name !== 'string') return '';
-  
+  if (!name || typeof name !== "string") return "";
+
   // Split the name into parts and filter out empty strings
-  const nameParts = name.trim().split(' ').filter(part => part.length > 0);
-  
-  if (nameParts.length === 0) return '';
-  
+  const nameParts = name
+    .trim()
+    .split(" ")
+    .filter((part) => part.length > 0);
+
+  if (nameParts.length === 0) return "";
+
   if (nameParts.length === 1) {
     // If only one name, take first two letters
     return nameParts[0].substring(0, 2).toUpperCase();
   }
-  
+
   // Take first letter of first name and first letter of last name
   const firstName = nameParts[0];
   const lastName = nameParts[nameParts.length - 1];
-  
+
   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
 };
 
-interface KanbanBoardProps {
+interface TasksViewProps {
   tasks?: Task[];
   projectId?: number; // Add projectId prop to filter tasks by project
 }
 
-const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
+const TasksView = ({ tasks = [] }: TasksViewProps) => {
   // Add custom CSS animations for card entrance
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       @keyframes cardSlideIn {
         0% {
@@ -159,15 +174,15 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   const [showDisplaySettings, setShowDisplaySettings] = useState(false);
   const [displaySettings, setDisplaySettings] = useState({
-    viewType: 'board', // 'list', 'board', or 'timeline'
+    viewType: "board", // 'list', 'board', or 'timeline'
     showCompleted: true,
-    groupBy: 'none', // 'none', 'status', 'priority', 'assignee', 'team'
+    groupBy: "none", // 'none', 'status', 'priority', 'assignee', 'team'
     showEmptyColumns: true, // Show empty columns in board view
     showProjectList: true, // Show project list in timeline view
     showWeekNumbers: true, // Show week numbers in timeline view
-    showClosedProjects: 'all', // 'none', 'past-week', 'past-month', 'past-3-months', 'past-6-months', 'all'
-    orderBy: 'manual', // 'manual', 'name', 'priority', 'due-date', 'created'
-    timelineZoom: 'month', // 'year', 'quarter', 'month', 'week'
+    showClosedProjects: "all", // 'none', 'past-week', 'past-month', 'past-3-months', 'past-6-months', 'all'
+    orderBy: "manual", // 'manual', 'name', 'priority', 'due-date', 'created'
+    timelineZoom: "month", // 'year', 'quarter', 'month', 'week'
     showSubtasks: true,
     showAttachments: true,
     showComments: true,
@@ -176,20 +191,27 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     showDueDate: true,
     showPriority: true,
     showAssignee: true,
-    showProgress: true
+    showProgress: true,
   });
   const [selectedProperties, setSelectedProperties] = useState([
-    'Status', 'Priority', 'Assignee', 'Target Date'
+    "Status",
+    "Priority",
+    "Assignee",
+    "Target Date",
   ]);
   const [defaultProperties, setDefaultProperties] = useState([
-    'Status', 'Priority', 'Assignee', 'Target Date'
+    "Status",
+    "Priority",
+    "Assignee",
+    "Target Date",
   ]);
   const [showDefaultModal, setShowDefaultModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const [selectedColumnStatus, setSelectedColumnStatus] = useState<string>('todo');
+  const [selectedColumnStatus, setSelectedColumnStatus] =
+    useState<string>("todo");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [commentsExpanded, setCommentsExpanded] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
@@ -199,7 +221,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   const [showViewMenu, setShowViewMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadDescription, setUploadDescription] = useState("");
   const [animationKey, setAnimationKey] = useState(0);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   const [activeColumnIndex, setActiveColumnIndex] = useState(0);
@@ -207,12 +229,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
   const [showReporterModal, setShowReporterModal] = useState(false);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [selectedAssignee, setSelectedAssignee] = useState('');
-  const [selectedReporter, setSelectedReporter] = useState('');
-  
+  const [selectedAssignee, setSelectedAssignee] = useState("");
+  const [selectedReporter, setSelectedReporter] = useState("");
+
   // Priority change state
-  const [showPriorityDropdown, setShowPriorityDropdown] = useState<string | null>(null);
-  
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState<
+    string | null
+  >(null);
+
   // Timeline-specific state
   const [timelineCurrentDate, setTimelineCurrentDate] = useState(new Date());
   const [timelineStartDate, setTimelineStartDate] = useState(() => {
@@ -220,42 +244,43 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     return startOfMonth;
   });
-  
+
   // Details panel state
-  const [selectedTaskForDetails, setSelectedTaskForDetails] = useState<Task | null>(null);
+  const [selectedTaskForDetails, setSelectedTaskForDetails] =
+    useState<Task | null>(null);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const [showFullOverview, setShowFullOverview] = useState(false);
-  
+
   const [columns, setColumns] = useState([
     {
-      id: 'todo',
-      title: 'To Do',
-      color: 'bg-muted',
-      tasks: []
+      id: "todo",
+      title: "To Do",
+      color: "bg-muted",
+      tasks: [],
     },
     {
-      id: 'in-progress',
-      title: 'In Progress',
-      color: 'bg-primary',
-      tasks: []
+      id: "in-progress",
+      title: "In Progress",
+      color: "bg-primary",
+      tasks: [],
     },
     {
-      id: 'review',
-      title: 'In Review',
-      color: 'bg-warning',
-      tasks: []
+      id: "review",
+      title: "In Review",
+      color: "bg-warning",
+      tasks: [],
     },
     {
-      id: 'done',
-      title: 'Done',
-      color: 'bg-success',
-      tasks: []
-    }
+      id: "done",
+      title: "Done",
+      color: "bg-success",
+      tasks: [],
+    },
   ]);
 
   // Trigger animations when component mounts or tasks change
   useEffect(() => {
-    setAnimationKey(prev => prev + 1);
+    setAnimationKey((prev) => prev + 1);
   }, [columns]);
 
   // Sequential border animation through columns
@@ -263,7 +288,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     // Start the sequential animation after cards have finished animating in
     const timer = setTimeout(() => {
       const interval = setInterval(() => {
-        setActiveColumnIndex(prev => (prev + 1) % 4); // 4 columns: todo, inprogress, review, done
+        setActiveColumnIndex((prev) => (prev + 1) % 4); // 4 columns: todo, inprogress, review, done
       }, 5000); // Change every 15 seconds
 
       return () => clearInterval(interval);
@@ -274,40 +299,50 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'Critical': return 'bg-destructive text-white';
-      case 'High': return 'bg-warning text-white';
-      case 'Medium': return 'bg-primary text-white';
-      case 'Low': return 'bg-muted text-muted-foreground';
-      default: return 'bg-secondary text-secondary-foreground';
+      case "Critical":
+        return "bg-destructive text-white";
+      case "High":
+        return "bg-warning text-white";
+      case "Medium":
+        return "bg-primary text-white";
+      case "Low":
+        return "bg-muted text-muted-foreground";
+      default:
+        return "bg-secondary text-secondary-foreground";
     }
   };
 
   // Render property value for list view
   const renderPropertyValue = (task: Task, property: string) => {
     switch (property) {
-      case 'Status':
+      case "Status":
         return (
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={`text-xs ${
-              task.status === 'todo' ? 'bg-gray-100 text-gray-700' :
-              task.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-              task.status === 'review' ? 'bg-yellow-100 text-yellow-700' :
-              'bg-green-100 text-green-700'
+              task.status === "todo"
+                ? "bg-gray-100 text-gray-700"
+                : task.status === "in-progress"
+                ? "bg-blue-100 text-blue-700"
+                : task.status === "review"
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-green-100 text-green-700"
             }`}
           >
-            {task.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            {task.status
+              .replace("-", " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase())}
           </Badge>
         );
-      
-      case 'Priority':
+
+      case "Priority":
         return (
           <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
             {task.priority}
           </Badge>
         );
-      
-      case 'Assignee':
+
+      case "Assignee":
         return (
           <div className="flex items-center space-x-2">
             <Avatar className="w-6 h-6 bg-primary text-primary-foreground text-xs flex items-center justify-center">
@@ -316,139 +351,152 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             <span className="text-sm text-gray-700">{task.assignee.name}</span>
           </div>
         );
-      
-      case 'Target Date':
-      case 'Due Date':
+
+      case "Target Date":
+      case "Due Date":
         return (
           <div className="flex items-center justify-center space-x-1 text-sm text-gray-600">
             <Calendar className="w-3 h-3" />
             <span>{task.dueDate}</span>
           </div>
         );
-      
-      case 'Milestones':
+
+      case "Milestones":
         return (
-          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700">
+          <Badge
+            variant="outline"
+            className="text-xs bg-purple-100 text-purple-700"
+          >
             Milestone 1
           </Badge>
         );
-      
-      case 'Health':
+
+      case "Health":
         return (
-          <Badge variant="outline" className="text-xs bg-green-100 text-green-700">
+          <Badge
+            variant="outline"
+            className="text-xs bg-green-100 text-green-700"
+          >
             Good
           </Badge>
         );
-      
-      case 'Teams':
-        return (
-          <span className="text-sm text-gray-700">Design Team</span>
-        );
-      
-      case 'Lead':
-        return (
-          <span className="text-sm text-gray-700">John Doe</span>
-        );
-      
-      case 'Members':
+
+      case "Teams":
+        return <span className="text-sm text-gray-700">Design Team</span>;
+
+      case "Lead":
+        return <span className="text-sm text-gray-700">John Doe</span>;
+
+      case "Members":
         return (
           <div className="flex -space-x-1 justify-center">
-            <div className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-medium">JD</div>
-            <div className="w-6 h-6 bg-green-500 text-white text-xs rounded-full flex items-center justify-center font-medium">MC</div>
-            <div className="w-6 h-6 bg-purple-500 text-white text-xs rounded-full flex items-center justify-center font-medium">SJ</div>
+            <div className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              JD
+            </div>
+            <div className="w-6 h-6 bg-green-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              MC
+            </div>
+            <div className="w-6 h-6 bg-purple-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              SJ
+            </div>
           </div>
         );
-      
-      case 'Dependencies':
+
+      case "Dependencies":
         return (
-          <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700">
+          <Badge
+            variant="outline"
+            className="text-xs bg-orange-100 text-orange-700"
+          >
             Task-123
           </Badge>
         );
-      
-      case 'Start Date':
+
+      case "Start Date":
         return (
           <div className="flex items-center space-x-1 text-sm text-gray-600">
             <Calendar className="w-3 h-3" />
             <span>Jul 20</span>
           </div>
         );
-      
-      case 'Created':
-        return (
-          <span className="text-sm text-gray-600">Jul 15</span>
-        );
-      
-      case 'Updated':
-        return (
-          <span className="text-sm text-gray-600">Jul 22</span>
-        );
-      
-      case 'Completed':
-        return (
-          <span className="text-sm text-gray-600">-</span>
-        );
-      
-      case 'Labels':
+
+      case "Created":
+        return <span className="text-sm text-gray-600">Jul 15</span>;
+
+      case "Updated":
+        return <span className="text-sm text-gray-600">Jul 22</span>;
+
+      case "Completed":
+        return <span className="text-sm text-gray-600">-</span>;
+
+      case "Labels":
         return (
           <div className="flex gap-1">
-            <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700">UI</Badge>
-            <Badge variant="outline" className="text-xs bg-green-100 text-green-700">Design</Badge>
+            <Badge
+              variant="outline"
+              className="text-xs bg-blue-100 text-blue-700"
+            >
+              UI
+            </Badge>
+            <Badge
+              variant="outline"
+              className="text-xs bg-green-100 text-green-700"
+            >
+              Design
+            </Badge>
           </div>
         );
-      
+
       default:
-        return (
-          <span className="text-sm text-gray-600">-</span>
-        );
+        return <span className="text-sm text-gray-600">-</span>;
     }
   };
 
   // Get filtered and grouped tasks based on display settings
   const getFilteredTasks = () => {
     let allTasks = [];
-    columns.forEach(column => {
+    columns.forEach((column) => {
       allTasks.push(...column.tasks);
     });
 
     // Filter based on "Show closed projects" setting
-    if (displaySettings.showClosedProjects === 'none') {
-      allTasks = allTasks.filter(task => task.status !== 'done');
-    } else if (displaySettings.showClosedProjects === 'past-week') {
+    if (displaySettings.showClosedProjects === "none") {
+      allTasks = allTasks.filter((task) => task.status !== "done");
+    } else if (displaySettings.showClosedProjects === "past-week") {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      allTasks = allTasks.filter(task => {
-        if (task.status === 'done') {
+      allTasks = allTasks.filter((task) => {
+        if (task.status === "done") {
           const taskDate = new Date(task.dueDate);
           return taskDate >= oneWeekAgo;
         }
         return true;
       });
-    } else if (displaySettings.showClosedProjects === 'past-month') {
+    } else if (displaySettings.showClosedProjects === "past-month") {
       const oneMonthAgo = new Date();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-      allTasks = allTasks.filter(task => {
-        if (task.status === 'done') {
+      allTasks = allTasks.filter((task) => {
+        if (task.status === "done") {
           const taskDate = new Date(task.dueDate);
           return taskDate >= oneMonthAgo;
         }
         return true;
       });
-    } else if (displaySettings.showClosedProjects === 'past-3-months') {
+    } else if (displaySettings.showClosedProjects === "past-3-months") {
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      allTasks = allTasks.filter(task => {
-        if (task.status === 'done') {
+      allTasks = allTasks.filter((task) => {
+        if (task.status === "done") {
           const taskDate = new Date(task.dueDate);
           return taskDate >= threeMonthsAgo;
         }
         return true;
       });
-    } else if (displaySettings.showClosedProjects === 'past-6-months') {
+    } else if (displaySettings.showClosedProjects === "past-6-months") {
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      allTasks = allTasks.filter(task => {
-        if (task.status === 'done') {
+      allTasks = allTasks.filter((task) => {
+        if (task.status === "done") {
           const taskDate = new Date(task.dueDate);
           return taskDate >= sixMonthsAgo;
         }
@@ -458,104 +506,133 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     // 'all' shows all tasks including closed ones
 
     // Sort tasks based on ordering setting
-    if (displaySettings.orderBy === 'name') {
+    if (displaySettings.orderBy === "name") {
       allTasks.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (displaySettings.orderBy === 'priority') {
-      const priorityOrder = { 'Critical': 1, 'High': 2, 'Medium': 3, 'Low': 4 };
-      allTasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-    } else if (displaySettings.orderBy === 'due-date') {
-      allTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-    } else if (displaySettings.orderBy === 'created') {
+    } else if (displaySettings.orderBy === "priority") {
+      const priorityOrder = { Critical: 1, High: 2, Medium: 3, Low: 4 };
+      allTasks.sort(
+        (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+      );
+    } else if (displaySettings.orderBy === "due-date") {
+      allTasks.sort(
+        (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      );
+    } else if (displaySettings.orderBy === "created") {
       // Assuming tasks have a created date, using due date as fallback
-      allTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+      allTasks.sort(
+        (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      );
     }
     // 'manual' keeps original order
 
-    console.log('Filtered tasks:', allTasks);
+    console.log("Filtered tasks:", allTasks);
     return allTasks;
   };
 
   // Get tasks for specific column based on grouping
   const getTasksForColumn = (columnId: string) => {
     const allTasks = getFilteredTasks();
-    
-    if (displaySettings.groupBy === 'status') {
-      return allTasks.filter(task => task.status === columnId);
-    } else if (displaySettings.groupBy === 'priority') {
-      return allTasks.filter(task => task.priority === columnId);
-    } else if (displaySettings.groupBy === 'assignee') {
-      return allTasks.filter(task => task.assignee.name === columnId);
+
+    if (displaySettings.groupBy === "status") {
+      return allTasks.filter((task) => task.status === columnId);
+    } else if (displaySettings.groupBy === "priority") {
+      return allTasks.filter((task) => task.priority === columnId);
+    } else if (displaySettings.groupBy === "assignee") {
+      return allTasks.filter((task) => task.assignee.name === columnId);
     }
-    
+
     return [];
   };
 
   // Get columns based on grouping
   const getDisplayColumns = () => {
     // Get all tasks from both the original columns and any newly added tasks
-    const allTasksFromColumns = columns.flatMap(column => column.tasks);
+    const allTasksFromColumns = columns.flatMap((column) => column.tasks);
     const allTasks = getFilteredTasks();
-    
-    if (displaySettings.groupBy === 'priority') {
+
+    if (displaySettings.groupBy === "priority") {
       const priorityColumns = [
-        { id: 'Critical', title: 'Critical', color: 'bg-destructive', tasks: [] },
-        { id: 'High', title: 'High Priority', color: 'bg-warning', tasks: [] },
-        { id: 'Medium', title: 'Medium Priority', color: 'bg-primary', tasks: [] },
-        { id: 'Low', title: 'Low Priority', color: 'bg-muted', tasks: [] }
+        {
+          id: "Critical",
+          title: "Critical",
+          color: "bg-destructive",
+          tasks: [],
+        },
+        { id: "High", title: "High Priority", color: "bg-warning", tasks: [] },
+        {
+          id: "Medium",
+          title: "Medium Priority",
+          color: "bg-primary",
+          tasks: [],
+        },
+        { id: "Low", title: "Low Priority", color: "bg-muted", tasks: [] },
       ];
-      
+
       // Filter out empty columns if showEmptyColumns is false
       if (!displaySettings.showEmptyColumns) {
-        return priorityColumns.filter(column => {
-          const columnTasks = allTasks.filter(task => task.priority === column.id);
+        return priorityColumns.filter((column) => {
+          const columnTasks = allTasks.filter(
+            (task) => task.priority === column.id
+          );
           return columnTasks.length > 0;
         });
       }
       return priorityColumns;
-    } else if (displaySettings.groupBy === 'assignee') {
-      const assignees = [...new Set(allTasks.map(task => task.assignee.name))];
-      const assigneeColumns = assignees.map(assignee => ({
+    } else if (displaySettings.groupBy === "assignee") {
+      const assignees = [
+        ...new Set(allTasks.map((task) => task.assignee.name)),
+      ];
+      const assigneeColumns = assignees.map((assignee) => ({
         id: assignee,
         title: assignee,
-        color: 'bg-primary',
-        tasks: []
+        color: "bg-primary",
+        tasks: [],
       }));
-      
+
       // Filter out empty columns if showEmptyColumns is false
       if (!displaySettings.showEmptyColumns) {
-        return assigneeColumns.filter(column => {
-          const columnTasks = allTasks.filter(task => task.assignee.name === column.id);
+        return assigneeColumns.filter((column) => {
+          const columnTasks = allTasks.filter(
+            (task) => task.assignee.name === column.id
+          );
           return columnTasks.length > 0;
         });
       }
       return assigneeColumns;
     } else {
       // Default status-based grouping - use original columns but with filtered tasks
-      const statusColumns = columns.map(column => ({
+      const statusColumns = columns.map((column) => ({
         ...column,
-        tasks: allTasks.filter(task => task.status === column.id)
+        tasks: allTasks.filter((task) => task.status === column.id),
       }));
-      
+
       // Filter out empty columns if showEmptyColumns is false
       if (!displaySettings.showEmptyColumns) {
-        return statusColumns.filter(column => column.tasks.length > 0);
+        return statusColumns.filter((column) => column.tasks.length > 0);
       }
       return statusColumns;
     }
   };
 
   // Render Board card with dynamic properties
-  const renderBoardCard = (task: Task, index: number = 0, columnIndex: number = 0) => {
+  const renderBoardCard = (
+    task: Task,
+    index: number = 0,
+    columnIndex: number = 0
+  ) => {
     return (
-      <Card 
+      <Card
         key={`${task.id}-${animationKey}`}
         className={`p-3 hover:shadow-custom-md transition-all cursor-pointer w-full card-animate-in ${
-          hoveredCardId === task.id ? 'card-hover-highlight' : 
-          index === 0 && activeColumnIndex === columnIndex ? 'card-sequential-highlight' : ''
+          hoveredCardId === task.id
+            ? "card-hover-highlight"
+            : index === 0 && activeColumnIndex === columnIndex
+            ? "card-sequential-highlight"
+            : ""
         }`}
-        style={{ 
+        style={{
           animationDelay: `${index * 300}ms`,
-          animationPlayState: 'running'
+          animationPlayState: "running",
         }}
         onClick={() => handleOpenDetail(task)}
         onMouseEnter={() => setHoveredCardId(task.id)}
@@ -567,20 +644,24 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             {task.title}
           </h4>
           <div className="flex items-center space-x-1">
-            {selectedProperties.includes('Priority') && (
-              <Badge className={`${getPriorityColor(task.priority)} text-xs ml-2`}>
+            {selectedProperties.includes("Priority") && (
+              <Badge
+                className={`${getPriorityColor(task.priority)} text-xs ml-2`}
+              >
                 {task.priority}
               </Badge>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowPriorityDropdown(showPriorityDropdown === task.id ? null : task.id);
+                    setShowPriorityDropdown(
+                      showPriorityDropdown === task.id ? null : task.id
+                    );
                   }}
                 >
                   <MoreHorizontal className="w-3 h-3" />
@@ -589,13 +670,15 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span>Change priority...</span>
-                  <span className="text-xs text-muted-foreground">P then P</span>
+                  <span className="text-xs text-muted-foreground">
+                    P then P
+                  </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePriorityChange(task.id, 'No priority');
+                    handlePriorityChange(task.id, "No priority");
                   }}
                   className="flex items-center justify-between"
                 >
@@ -603,12 +686,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     <div className="w-4 h-4 border-2 border-dashed border-gray-400 rounded"></div>
                     <span>No priority</span>
                   </div>
-                  {task.priority === 'No priority' && <CheckCircle className="w-4 h-4" />}
+                  {task.priority === "No priority" && (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePriorityChange(task.id, 'Urgent');
+                    handlePriorityChange(task.id, "Urgent");
                   }}
                   className="flex items-center justify-between"
                 >
@@ -618,12 +703,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     </div>
                     <span>Urgent</span>
                   </div>
-                  {task.priority === 'Urgent' && <CheckCircle className="w-4 h-4" />}
+                  {task.priority === "Urgent" && (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePriorityChange(task.id, 'High');
+                    handlePriorityChange(task.id, "High");
                   }}
                   className="flex items-center justify-between"
                 >
@@ -637,12 +724,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     </div>
                     <span>High</span>
                   </div>
-                  {task.priority === 'High' && <CheckCircle className="w-4 h-4" />}
+                  {task.priority === "High" && (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePriorityChange(task.id, 'Medium');
+                    handlePriorityChange(task.id, "Medium");
                   }}
                   className="flex items-center justify-between"
                 >
@@ -655,12 +744,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     </div>
                     <span>Medium</span>
                   </div>
-                  {task.priority === 'Medium' && <CheckCircle className="w-4 h-4" />}
+                  {task.priority === "Medium" && (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePriorityChange(task.id, 'Low');
+                    handlePriorityChange(task.id, "Low");
                   }}
                   className="flex items-center justify-between"
                 >
@@ -670,7 +761,9 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     </div>
                     <span>Low</span>
                   </div>
-                  {task.priority === 'Low' && <CheckCircle className="w-4 h-4" />}
+                  {task.priority === "Low" && (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -681,7 +774,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         <div className="space-y-1.5 text-xs">
           {/* Row 1: Milestones and Lead */}
           <div className="flex items-center justify-between">
-            {selectedProperties.includes('Milestones') && (
+            {selectedProperties.includes("Milestones") && (
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                 <span>Jul 24</span>
@@ -693,30 +786,32 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 <span>hh</span>
               </div>
             )}
-            {selectedProperties.includes('Lead') && (
+            {selectedProperties.includes("Lead") && (
               <div className="flex items-center space-x-1">
                 <Avatar className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center">
                   {task.assignee.avatar}
                 </Avatar>
-                <span className="text-muted-foreground">{task.assignee.name}</span>
+                <span className="text-muted-foreground">
+                  {task.assignee.name}
+                </span>
               </div>
             )}
           </div>
 
           {/* Row 2: Status, Health, Teams */}
           <div className="flex items-center space-x-2">
-            {selectedProperties.includes('Status') && (
+            {selectedProperties.includes("Status") && (
               <Badge variant="outline" className="text-xs">
                 {task.status}
               </Badge>
             )}
-            {selectedProperties.includes('Health') && (
+            {selectedProperties.includes("Health") && (
               <div className="flex items-center space-x-1">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                 <span className="text-muted-foreground">Good</span>
               </div>
             )}
-            {selectedProperties.includes('Teams') && (
+            {selectedProperties.includes("Teams") && (
               <Badge variant="outline" className="text-xs">
                 Development
               </Badge>
@@ -725,7 +820,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
           {/* Row 3: Members and Dependencies */}
           <div className="flex items-center justify-between">
-            {selectedProperties.includes('Members') && (
+            {selectedProperties.includes("Members") && (
               <div className="flex items-center space-x-1">
                 <div className="flex -space-x-0.5">
                   <Avatar className="w-4 h-4 bg-blue-500 text-white text-xs flex items-center justify-center border border-white">
@@ -740,7 +835,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 </div>
               </div>
             )}
-            {selectedProperties.includes('Dependencies') && (
+            {selectedProperties.includes("Dependencies") && (
               <Badge variant="outline" className="text-xs">
                 Task-123
               </Badge>
@@ -749,25 +844,25 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
           {/* Row 4: Dates */}
           <div className="flex items-center space-x-3">
-            {selectedProperties.includes('Start Date') && (
+            {selectedProperties.includes("Start Date") && (
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <Calendar className="w-2.5 h-2.5" />
                 <span>Jul 15</span>
               </div>
             )}
-            {selectedProperties.includes('Target Date') && (
+            {selectedProperties.includes("Target Date") && (
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <Calendar className="w-2.5 h-2.5" />
                 <span>{task.dueDate}</span>
               </div>
             )}
-            {selectedProperties.includes('Created') && (
+            {selectedProperties.includes("Created") && (
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <Calendar className="w-2.5 h-2.5" />
                 <span>Jul 10</span>
               </div>
             )}
-            {selectedProperties.includes('Updated') && (
+            {selectedProperties.includes("Updated") && (
               <div className="flex items-center space-x-1 text-muted-foreground">
                 <Calendar className="w-2.5 h-2.5" />
                 <span>Jul 20</span>
@@ -777,7 +872,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
           {/* Row 5: Labels and Completed */}
           <div className="flex items-center justify-between">
-            {selectedProperties.includes('Labels') && (
+            {selectedProperties.includes("Labels") && (
               <div className="flex flex-wrap gap-1">
                 {task.tags.map((tag, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
@@ -786,16 +881,17 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 ))}
               </div>
             )}
-            {selectedProperties.includes('Completed') && task.status === 'done' && (
-              <div className="flex items-center space-x-1 text-muted-foreground">
-                <CheckCircle className="w-2.5 h-2.5 text-green-500" />
-                <span>Jul 25</span>
-              </div>
-            )}
+            {selectedProperties.includes("Completed") &&
+              task.status === "done" && (
+                <div className="flex items-center space-x-1 text-muted-foreground">
+                  <CheckCircle className="w-2.5 h-2.5 text-green-500" />
+                  <span>Jul 25</span>
+                </div>
+              )}
           </div>
 
           {/* Row 6: Description (if selected) */}
-          {selectedProperties.includes('Description') && (
+          {selectedProperties.includes("Description") && (
             <p className="text-muted-foreground line-clamp-1">
               {task.description}
             </p>
@@ -814,19 +910,20 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   // Timeline utility functions
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
   const getWeekNumber = (date: Date) => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const pastDaysOfYear =
+      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
   };
 
   const getMonthName = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    return date.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
   };
 
   const getQuarterName = (date: Date) => {
@@ -840,7 +937,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     const startDate = new Date(timelineStartDate);
 
     switch (displaySettings.timelineZoom) {
-      case 'year':
+      case "year":
         // Generate 12 months
         for (let i = 0; i < 12; i++) {
           const currentDate = new Date(startDate);
@@ -848,23 +945,23 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           dates.push(currentDate);
         }
         break;
-      case 'quarter':
+      case "quarter":
         // Generate 4 quarters
         for (let i = 0; i < 4; i++) {
           const currentDate = new Date(startDate);
-          currentDate.setMonth(startDate.getMonth() + (i * 3));
+          currentDate.setMonth(startDate.getMonth() + i * 3);
           dates.push(currentDate);
         }
         break;
-      case 'month':
+      case "month":
         // Generate 12 weeks
         for (let i = 0; i < 12; i++) {
           const currentDate = new Date(startDate);
-          currentDate.setDate(startDate.getDate() + (i * 7));
+          currentDate.setDate(startDate.getDate() + i * 7);
           dates.push(currentDate);
         }
         break;
-      case 'week':
+      case "week":
         // Generate 5 days
         for (let i = 0; i < 5; i++) {
           const currentDate = new Date(startDate);
@@ -885,12 +982,12 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     const startDate = new Date(task.dueDate);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 7); // Default 1 week duration
-    
+
     return {
       start: startDate,
       end: endDate,
       left: 0, // Will be calculated based on timeline
-      width: 0 // Will be calculated based on timeline
+      width: 0, // Will be calculated based on timeline
     };
   };
 
@@ -898,13 +995,13 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   const calculateTaskProgress = (task: Task) => {
     // Calculate progress based on status
     switch (task.status) {
-      case 'todo':
+      case "todo":
         return 0;
-      case 'in-progress':
+      case "in-progress":
         return 50;
-      case 'review':
+      case "review":
         return 75;
-      case 'done':
+      case "done":
         return 100;
       default:
         return 0;
@@ -912,21 +1009,21 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 100) return 'bg-green-500';
-    if (progress >= 75) return 'bg-blue-500';
-    if (progress >= 50) return 'bg-yellow-500';
-    return 'bg-gray-300';
+    if (progress >= 100) return "bg-green-500";
+    if (progress >= 75) return "bg-blue-500";
+    if (progress >= 50) return "bg-yellow-500";
+    return "bg-gray-300";
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'todo':
+      case "todo":
         return <div className="w-3 h-3 rounded-full bg-gray-400"></div>;
-      case 'in-progress':
+      case "in-progress":
         return <div className="w-3 h-3 rounded-full bg-blue-500"></div>;
-      case 'review':
+      case "review":
         return <div className="w-3 h-3 rounded-full bg-yellow-500"></div>;
-      case 'done':
+      case "done":
         return <CheckCircle className="w-3 h-3 text-green-500" />;
       default:
         return <div className="w-3 h-3 rounded-full bg-gray-400"></div>;
@@ -934,19 +1031,30 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   };
 
   // Render nested task view
-  const renderNestedTask = (task: Task, level: number = 0, index: number = 0, columnIndex: number = 0) => {
+  const renderNestedTask = (
+    task: Task,
+    level: number = 0,
+    index: number = 0,
+    columnIndex: number = 0
+  ) => {
     const allTasks = getFilteredTasks();
-    const subtasks = allTasks.filter(t => t.parentId === task.id);
-    
+    const subtasks = allTasks.filter((t) => t.parentId === task.id);
+
     return (
-      <div key={task.id} className={`${level > 0 ? 'ml-4 border-l border-border pl-3' : ''}`}>
-        <Card 
+      <div
+        key={task.id}
+        className={`${level > 0 ? "ml-4 border-l border-border pl-3" : ""}`}
+      >
+        <Card
           className={`p-4 hover:shadow-custom-md transition-all cursor-pointer mb-2 w-full card-animate-in ${
-            hoveredCardId === task.id ? 'card-hover-highlight' : 
-            index === 0 && activeColumnIndex === columnIndex ? 'card-sequential-highlight' : ''
+            hoveredCardId === task.id
+              ? "card-hover-highlight"
+              : index === 0 && activeColumnIndex === columnIndex
+              ? "card-sequential-highlight"
+              : ""
           }`}
-          style={{ 
-            animationDelay: `${index * 300}ms`
+          style={{
+            animationDelay: `${index * 300}ms`,
           }}
           onMouseEnter={() => setHoveredCardId(task.id)}
           onMouseLeave={() => setHoveredCardId(null)}
@@ -1005,9 +1113,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         </Card>
 
         {/* Render subtasks */}
-        {displaySettings.viewType === 'nested' && subtasks.map((subtask, subIndex) => 
-          renderNestedTask(subtask, level + 1, subIndex)
-        )}
+        {displaySettings.viewType === "nested" &&
+          subtasks.map((subtask, subIndex) =>
+            renderNestedTask(subtask, level + 1, subIndex)
+          )}
       </div>
     );
   };
@@ -1017,15 +1126,15 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
     const newTask = {
       ...task,
       id: task.id || Date.now().toString(),
-      title: task.title || 'New Task',
-      description: task.description || '',
-      priority: task.priority || 'Medium',
-      assignee: task.assignee || { name: 'Unassigned', avatar: 'U' },
-      dueDate: task.dueDate || new Date().toISOString().split('T')[0],
+      title: task.title || "New Task",
+      description: task.description || "",
+      priority: task.priority || "Medium",
+      assignee: task.assignee || { name: "Unassigned", avatar: "U" },
+      dueDate: task.dueDate || new Date().toISOString().split("T")[0],
       comments: task.comments || 0,
       attachments: task.attachments || 0,
       tags: task.tags || [],
-      status: task.status || 'todo',
+      status: task.status || "todo",
       parentId: task.parentId || null,
       subtasks: task.subtasks || [],
       attachmentsList: task.attachmentsList || [],
@@ -1033,24 +1142,24 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
       development: task.development || {
         branches: 0,
         commits: 0,
-        pullRequests: 0
-      }
+        pullRequests: 0,
+      },
     };
 
     const targetColumnId = newTask.status;
-    const updatedColumns = columns.map(column => {
+    const updatedColumns = columns.map((column) => {
       if (column.id === targetColumnId) {
         return {
           ...column,
-          tasks: [...column.tasks, newTask]
+          tasks: [...column.tasks, newTask],
         };
       }
       return column;
     });
-    
+
     setColumns(updatedColumns);
-    console.log('New task added:', newTask);
-    console.log('Updated columns:', updatedColumns);
+    console.log("New task added:", newTask);
+    console.log("Updated columns:", updatedColumns);
   };
 
   const handleOpenDetail = (task: Task) => {
@@ -1060,49 +1169,55 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   const handleAddComment = () => {
     if (!newComment.trim() || !selectedTask) return;
-    
+
     const comment = {
       id: Date.now().toString(),
-      author: 'Current User',
+      author: "Current User",
       content: newComment,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
-    setColumns(columns.map(column => ({
-      ...column,
-      tasks: column.tasks.map(task => 
-        task.id === selectedTask.id 
-          ? { ...task, commentsList: [...(task.commentsList || []), comment], comments: task.comments + 1 }
-          : task
-      )
-    })));
-    
+
+    setColumns(
+      columns.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) =>
+          task.id === selectedTask.id
+            ? {
+                ...task,
+                commentsList: [...(task.commentsList || []), comment],
+                comments: task.comments + 1,
+              }
+            : task
+        ),
+      }))
+    );
+
     setSelectedTask({
       ...selectedTask,
       commentsList: [...(selectedTask.commentsList || []), comment],
-      comments: selectedTask.comments + 1
+      comments: selectedTask.comments + 1,
     });
-    
-    setNewComment('');
+
+    setNewComment("");
   };
 
   const handleStatusChange = (newStatus: string) => {
     if (!selectedTask) return;
-    
-    setColumns(columns.map(column => ({
-      ...column,
-      tasks: column.tasks.map(task => 
-        task.id === selectedTask.id 
-          ? { ...task, status: newStatus }
-          : task
-      )
-    })));
-    
+
+    setColumns(
+      columns.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) =>
+          task.id === selectedTask.id ? { ...task, status: newStatus } : task
+        ),
+      }))
+    );
+
     setSelectedTask({
       ...selectedTask,
-      status: newStatus
+      status: newStatus,
     });
-    
+
     setShowStatusDropdown(false);
   };
 
@@ -1132,14 +1247,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   const handlePriorityChange = (taskId: string, newPriority: string) => {
     // Update the task priority in the tasks array
-    const updatedTasks = tasks.map(task => 
+    const updatedTasks = tasks.map((task) =>
       task.id === taskId ? { ...task, priority: newPriority } : task
     );
-    
+
     // In a real application, you would also update the backend
     // For now, we'll just update the local state
     console.log(`Priority changed for task ${taskId} to ${newPriority}`);
-    
+
     // Close the dropdown
     setShowPriorityDropdown(null);
   };
@@ -1153,44 +1268,56 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   const handleUpload = () => {
     if (selectedTask) {
-      const newAttachments = selectedFiles.map(file => ({
+      const newAttachments = selectedFiles.map((file) => ({
         name: file.name,
         size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-        type: file.name.split('.').pop() || 'unknown',
-        url: '#',
+        type: file.name.split(".").pop() || "unknown",
+        url: "#",
         description: uploadDescription,
-        file: file
+        file: file,
       }));
-      
-      setColumns(columns.map(column => ({
-        ...column,
-        tasks: column.tasks.map(task => 
-          task.id === selectedTask.id 
-            ? { 
-                ...task, 
-                attachmentsList: [...(task.attachmentsList || []), ...newAttachments],
-                attachments: task.attachments + selectedFiles.length
-              }
-            : task
-        )
-      })));
-      
+
+      setColumns(
+        columns.map((column) => ({
+          ...column,
+          tasks: column.tasks.map((task) =>
+            task.id === selectedTask.id
+              ? {
+                  ...task,
+                  attachmentsList: [
+                    ...(task.attachmentsList || []),
+                    ...newAttachments,
+                  ],
+                  attachments: task.attachments + selectedFiles.length,
+                }
+              : task
+          ),
+        }))
+      );
+
       setSelectedTask({
         ...selectedTask,
-        attachmentsList: [...(selectedTask.attachmentsList || []), ...newAttachments],
-        attachments: selectedTask.attachments + selectedFiles.length
+        attachmentsList: [
+          ...(selectedTask.attachmentsList || []),
+          ...newAttachments,
+        ],
+        attachments: selectedTask.attachments + selectedFiles.length,
       });
     }
-    
+
     setSelectedFiles([]);
-    setUploadDescription('');
+    setUploadDescription("");
     setShowUploadModal(false);
   };
 
-  const handleDownload = (attachment: { name: string; url: string; file?: File }) => {
+  const handleDownload = (attachment: {
+    name: string;
+    url: string;
+    file?: File;
+  }) => {
     if (attachment.file) {
       const url = URL.createObjectURL(attachment.file);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = attachment.name;
       document.body.appendChild(link);
@@ -1198,10 +1325,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } else {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = attachment.url;
       link.download = attachment.name;
-      link.target = '_blank';
+      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1217,29 +1344,53 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(event.target as Node)
+      ) {
         setShowStatusDropdown(false);
       }
-      if (optionsMenuRef.current && !optionsMenuRef.current.contains(event.target as Node)) {
+      if (
+        optionsMenuRef.current &&
+        !optionsMenuRef.current.contains(event.target as Node)
+      ) {
         setShowOptionsMenu(false);
       }
-      if (sidebarOptionsMenuRef.current && !sidebarOptionsMenuRef.current.contains(event.target as Node)) {
+      if (
+        sidebarOptionsMenuRef.current &&
+        !sidebarOptionsMenuRef.current.contains(event.target as Node)
+      ) {
         setShowSidebarOptionsMenu(false);
       }
-      if (viewMenuRef.current && !viewMenuRef.current.contains(event.target as Node)) {
+      if (
+        viewMenuRef.current &&
+        !viewMenuRef.current.contains(event.target as Node)
+      ) {
         setShowViewMenu(false);
       }
       // Removed display settings click outside handler - dropdown will stay open
     };
 
-    if (showStatusDropdown || showOptionsMenu || showSidebarOptionsMenu || showViewMenu || showDisplaySettings) {
-      document.addEventListener('mousedown', handleClickOutside);
+    if (
+      showStatusDropdown ||
+      showOptionsMenu ||
+      showSidebarOptionsMenu ||
+      showViewMenu ||
+      showDisplaySettings
+    ) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showStatusDropdown, showOptionsMenu, showSidebarOptionsMenu, showViewMenu, showDisplaySettings]);
+  }, [
+    showStatusDropdown,
+    showOptionsMenu,
+    showSidebarOptionsMenu,
+    showViewMenu,
+    showDisplaySettings,
+  ]);
 
   return (
     <TooltipProvider>
@@ -1247,28 +1398,32 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Project Board
+            </h1>
             <p className="text-muted-foreground">Mobile App Redesign Sprint</p>
           </div>
           <div className="flex space-x-3">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="relative" ref={displaySettingsRef}>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => setShowDisplaySettings(!showDisplaySettings)}
                   >
-                      <Settings className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Display Settings</span>
-                    </Button>
-                  
+                    <Settings className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Display Settings</span>
+                  </Button>
+
                   {showDisplaySettings && (
-                                        <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-4 transform-gpu">
-                    <div className="space-y-4">
+                    <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-4 transform-gpu">
+                      <div className="space-y-4">
                         {/* View Type Section */}
-                      <div>
+                        <div>
                           <div className="flex items-center justify-between mb-3">
-                            <label className="text-sm font-medium text-gray-700">View Type</label>
+                            <label className="text-sm font-medium text-gray-700">
+                              View Type
+                            </label>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -1279,55 +1434,90 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                             </Button>
                           </div>
                           <div className="grid grid-cols-3 gap-2">
-                            <Button 
-                              variant={displaySettings.viewType === 'list' ? "default" : "outline"}
+                            <Button
+                              variant={
+                                displaySettings.viewType === "list"
+                                  ? "default"
+                                  : "outline"
+                              }
                               className={`h-8 flex items-center justify-center space-x-2 rounded-md transition-all duration-200 ${
-                                displaySettings.viewType === 'list' 
-                                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
-                                  : 'border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
+                                displaySettings.viewType === "list"
+                                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                                  : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
                               }`}
-                              onClick={() => setDisplaySettings({...displaySettings, viewType: 'list'})}
+                              onClick={() =>
+                                setDisplaySettings({
+                                  ...displaySettings,
+                                  viewType: "list",
+                                })
+                              }
                             >
-                              <List className={`w-3 h-3 transition-colors duration-200 ${
-                                displaySettings.viewType === 'list' 
-                                  ? 'text-white' 
-                                  : 'text-gray-600 hover:text-blue-600'
-                              }`} />
+                              <List
+                                className={`w-3 h-3 transition-colors duration-200 ${
+                                  displaySettings.viewType === "list"
+                                    ? "text-white"
+                                    : "text-gray-600 hover:text-blue-600"
+                                }`}
+                              />
                               <span className="text-xs font-medium">List</span>
                             </Button>
-                            <Button 
-                              variant={displaySettings.viewType === 'board' ? "default" : "outline"}
+                            <Button
+                              variant={
+                                displaySettings.viewType === "board"
+                                  ? "default"
+                                  : "outline"
+                              }
                               className={`h-8 flex items-center justify-center space-x-2 rounded-md transition-all duration-200 ${
-                                displaySettings.viewType === 'board' 
-                                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
-                                  : 'border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
+                                displaySettings.viewType === "board"
+                                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                                  : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
                               }`}
-                              onClick={() => setDisplaySettings({...displaySettings, viewType: 'board'})}
+                              onClick={() =>
+                                setDisplaySettings({
+                                  ...displaySettings,
+                                  viewType: "board",
+                                })
+                              }
                             >
-                              <LayoutGrid className={`w-3 h-3 transition-colors duration-200 ${
-                                displaySettings.viewType === 'board' 
-                                  ? 'text-white' 
-                                  : 'text-gray-600 hover:text-blue-600'
-                              }`} />
+                              <LayoutGrid
+                                className={`w-3 h-3 transition-colors duration-200 ${
+                                  displaySettings.viewType === "board"
+                                    ? "text-white"
+                                    : "text-gray-600 hover:text-blue-600"
+                                }`}
+                              />
                               <span className="text-xs font-medium">Board</span>
                             </Button>
-                            <Button 
-                              variant={displaySettings.viewType === 'timeline' ? "default" : "outline"}
+                            <Button
+                              variant={
+                                displaySettings.viewType === "timeline"
+                                  ? "default"
+                                  : "outline"
+                              }
                               className={`h-8 flex items-center justify-center space-x-2 rounded-md transition-all duration-200 ${
-                                displaySettings.viewType === 'timeline' 
-                                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
-                                  : 'border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
+                                displaySettings.viewType === "timeline"
+                                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                                  : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
                               }`}
-                              onClick={() => setDisplaySettings({...displaySettings, viewType: 'timeline'})}
+                              onClick={() =>
+                                setDisplaySettings({
+                                  ...displaySettings,
+                                  viewType: "timeline",
+                                })
+                              }
                             >
-                              <Calendar className={`w-3 h-3 transition-colors duration-200 ${
-                                displaySettings.viewType === 'timeline' 
-                                  ? 'text-white' 
-                                  : 'text-gray-600 hover:text-blue-600'
-                              }`} />
-                              <span className="text-xs font-medium">Timeline</span>
+                              <Calendar
+                                className={`w-3 h-3 transition-colors duration-200 ${
+                                  displaySettings.viewType === "timeline"
+                                    ? "text-white"
+                                    : "text-gray-600 hover:text-blue-600"
+                                }`}
+                              />
+                              <span className="text-xs font-medium">
+                                Timeline
+                              </span>
                             </Button>
-                      </div>
+                          </div>
                         </div>
 
                         {/* Grouping and Ordering Section */}
@@ -1335,123 +1525,214 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-medium text-gray-700 flex items-center">
                               <List className="w-3 h-3 mr-1 text-gray-500" />
-                              {displaySettings.viewType === 'board' ? 'Columns' : 'Grouping'}
+                              {displaySettings.viewType === "board"
+                                ? "Columns"
+                                : "Grouping"}
                             </label>
-                        <Select 
-                          value={displaySettings.groupBy} 
-                          onValueChange={(value) => setDisplaySettings({...displaySettings, groupBy: value})}
-                        >
+                            <Select
+                              value={displaySettings.groupBy}
+                              onValueChange={(value) =>
+                                setDisplaySettings({
+                                  ...displaySettings,
+                                  groupBy: value,
+                                })
+                              }
+                            >
                               <SelectTrigger className="h-6 text-xs border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 w-32">
-                                <SelectValue placeholder={displaySettings.viewType === 'board' ? "Status" : "No grouping"} />
-                          </SelectTrigger>
-                          <SelectContent>
-                                <SelectItem value="none">No grouping</SelectItem>
-                            <SelectItem value="status">Status</SelectItem>
-                            <SelectItem value="priority">Priority</SelectItem>
-                            <SelectItem value="assignee">Assignee</SelectItem>
+                                <SelectValue
+                                  placeholder={
+                                    displaySettings.viewType === "board"
+                                      ? "Status"
+                                      : "No grouping"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  No grouping
+                                </SelectItem>
+                                <SelectItem value="status">Status</SelectItem>
+                                <SelectItem value="priority">
+                                  Priority
+                                </SelectItem>
+                                <SelectItem value="assignee">
+                                  Assignee
+                                </SelectItem>
                                 <SelectItem value="team">Team</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                              </SelectContent>
+                            </Select>
+                          </div>
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-medium text-gray-700 flex items-center">
                               <SortAsc className="w-3 h-3 mr-1 text-gray-500" />
-                              {displaySettings.viewType === 'board' ? 'Rows' : 'Ordering'}
+                              {displaySettings.viewType === "board"
+                                ? "Rows"
+                                : "Ordering"}
                             </label>
-                        <Select 
+                            <Select
                               value={displaySettings.orderBy}
-                              onValueChange={(value) => setDisplaySettings({...displaySettings, orderBy: value})}
-                        >
+                              onValueChange={(value) =>
+                                setDisplaySettings({
+                                  ...displaySettings,
+                                  orderBy: value,
+                                })
+                              }
+                            >
                               <SelectTrigger className="h-6 text-xs border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 w-32">
-                                <SelectValue placeholder={displaySettings.viewType === 'board' ? "No grouping" : "Manual"} />
-                          </SelectTrigger>
-                          <SelectContent>
+                                <SelectValue
+                                  placeholder={
+                                    displaySettings.viewType === "board"
+                                      ? "No grouping"
+                                      : "Manual"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
                                 <SelectItem value="manual">Manual</SelectItem>
                                 <SelectItem value="name">Name</SelectItem>
-                            <SelectItem value="priority">Priority</SelectItem>
-                                <SelectItem value="due-date">Due Date</SelectItem>
+                                <SelectItem value="priority">
+                                  Priority
+                                </SelectItem>
+                                <SelectItem value="due-date">
+                                  Due Date
+                                </SelectItem>
                                 <SelectItem value="created">Created</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                              </SelectContent>
+                            </Select>
+                          </div>
                           <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium text-gray-700">Show closed projects</label>
-                            <Select 
+                            <label className="text-xs font-medium text-gray-700">
+                              Show closed projects
+                            </label>
+                            <Select
                               value={displaySettings.showClosedProjects}
-                              onValueChange={(value) => setDisplaySettings({...displaySettings, showClosedProjects: value})}
+                              onValueChange={(value) =>
+                                setDisplaySettings({
+                                  ...displaySettings,
+                                  showClosedProjects: value,
+                                })
+                              }
                             >
                               <SelectTrigger className="h-6 text-xs border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 w-32">
                                 <SelectValue placeholder="All" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="past-week">Past week</SelectItem>
-                                <SelectItem value="past-month">Past month</SelectItem>
-                                <SelectItem value="past-3-months">Past 3 months</SelectItem>
-                                <SelectItem value="past-6-months">Past 6 months</SelectItem>
+                                <SelectItem value="past-week">
+                                  Past week
+                                </SelectItem>
+                                <SelectItem value="past-month">
+                                  Past month
+                                </SelectItem>
+                                <SelectItem value="past-3-months">
+                                  Past 3 months
+                                </SelectItem>
+                                <SelectItem value="past-6-months">
+                                  Past 6 months
+                                </SelectItem>
                                 <SelectItem value="all">All</SelectItem>
                               </SelectContent>
                             </Select>
-                    </div>
-
-                        {/* Zoom Section - Only show when Timeline view is selected */}
-                        {displaySettings.viewType === 'timeline' && (
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium text-gray-700">Zoom</label>
-                            <Select 
-                              value={displaySettings.timelineZoom}
-                              onValueChange={(value) => setDisplaySettings({...displaySettings, timelineZoom: value})}
-                            >
-                              <SelectTrigger className="h-6 text-xs border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 w-32">
-                                <SelectValue placeholder="Month" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="week">Week</SelectItem>
-                                <SelectItem value="month">Month</SelectItem>
-                                <SelectItem value="quarter">Quarter</SelectItem>
-                                <SelectItem value="year">Year</SelectItem>
-                              </SelectContent>
-                            </Select>
                           </div>
-                        )}
+
+                          {/* Zoom Section - Only show when Timeline view is selected */}
+                          {displaySettings.viewType === "timeline" && (
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-medium text-gray-700">
+                                Zoom
+                              </label>
+                              <Select
+                                value={displaySettings.timelineZoom}
+                                onValueChange={(value) =>
+                                  setDisplaySettings({
+                                    ...displaySettings,
+                                    timelineZoom: value,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="h-6 text-xs border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 w-32">
+                                  <SelectValue placeholder="Month" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="week">Week</SelectItem>
+                                  <SelectItem value="month">Month</SelectItem>
+                                  <SelectItem value="quarter">
+                                    Quarter
+                                  </SelectItem>
+                                  <SelectItem value="year">Year</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
                         </div>
 
                         {/* Board Options Section - Only show when Board view is selected */}
-                        {displaySettings.viewType === 'board' && (
+                        {displaySettings.viewType === "board" && (
                           <div className="space-y-3">
                             <div className="mb-3">
-                              <h4 className="text-xs font-medium text-gray-700">Board options</h4>
+                              <h4 className="text-xs font-medium text-gray-700">
+                                Board options
+                              </h4>
                             </div>
                             <div className="flex items-center justify-between">
-                              <label className="text-xs font-medium text-gray-700">Show empty columns</label>
-                              <Switch 
-                                checked={displaySettings.showEmptyColumns || false}
-                                onCheckedChange={(checked) => setDisplaySettings({...displaySettings, showEmptyColumns: checked})}
+                              <label className="text-xs font-medium text-gray-700">
+                                Show empty columns
+                              </label>
+                              <Switch
+                                checked={
+                                  displaySettings.showEmptyColumns || false
+                                }
+                                onCheckedChange={(checked) =>
+                                  setDisplaySettings({
+                                    ...displaySettings,
+                                    showEmptyColumns: checked,
+                                  })
+                                }
                                 className="data-[state=checked]:bg-blue-600"
                               />
-                      </div>
-                    </div>
+                            </div>
+                          </div>
                         )}
 
                         {/* Timeline Options Section - Only show when Timeline view is selected */}
-                        {displaySettings.viewType === 'timeline' && (
+                        {displaySettings.viewType === "timeline" && (
                           <div className="space-y-3">
                             <div className="mb-3">
-                              <h4 className="text-xs font-medium text-gray-700">Timeline options</h4>
+                              <h4 className="text-xs font-medium text-gray-700">
+                                Timeline options
+                              </h4>
                             </div>
                             <div className="flex items-center justify-between">
-                              <label className="text-xs font-medium text-gray-700">Show project list</label>
-                              <Switch 
-                                checked={displaySettings.showProjectList || false}
-                                onCheckedChange={(checked) => setDisplaySettings({...displaySettings, showProjectList: checked})}
+                              <label className="text-xs font-medium text-gray-700">
+                                Show project list
+                              </label>
+                              <Switch
+                                checked={
+                                  displaySettings.showProjectList || false
+                                }
+                                onCheckedChange={(checked) =>
+                                  setDisplaySettings({
+                                    ...displaySettings,
+                                    showProjectList: checked,
+                                  })
+                                }
                                 className="data-[state=checked]:bg-blue-600"
                               />
                             </div>
                             <div className="flex items-center justify-between">
-                              <label className="text-xs font-medium text-gray-700">Show week numbers</label>
-                              <Switch 
-                                checked={displaySettings.showWeekNumbers || false}
-                                onCheckedChange={(checked) => setDisplaySettings({...displaySettings, showWeekNumbers: checked})}
+                              <label className="text-xs font-medium text-gray-700">
+                                Show week numbers
+                              </label>
+                              <Switch
+                                checked={
+                                  displaySettings.showWeekNumbers || false
+                                }
+                                onCheckedChange={(checked) =>
+                                  setDisplaySettings({
+                                    ...displaySettings,
+                                    showWeekNumbers: checked,
+                                  })
+                                }
                                 className="data-[state=checked]:bg-blue-600"
                               />
                             </div>
@@ -1462,110 +1743,201 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <div>
                           <div className="mb-3">
                             <h4 className="text-xs font-medium text-gray-700">
-                              {displaySettings.viewType === 'board' ? 'Display properties' : 'List options'}
+                              {displaySettings.viewType === "board"
+                                ? "Display properties"
+                                : "List options"}
                             </h4>
                             <p className="text-xs text-gray-500">
-                              {displaySettings.viewType === 'board' ? 'Select properties to display on cards' : 'Display properties'}
+                              {displaySettings.viewType === "board"
+                                ? "Select properties to display on cards"
+                                : "Display properties"}
                             </p>
                           </div>
                           <div className="grid grid-cols-3 gap-1">
                             {/* Timeline-specific properties when Timeline view is selected */}
-                            {displaySettings.viewType === 'timeline' ? (
-                              ['Milestones', 'Priority', 'Status', 'Health', 'Lead', 'Dependencies', 'Predictions', 'Members', 'Teams', 'Target Date', 'Start Date', 'Created', 'Updated', 'Completed', 'Labels'].map((property) => (
-                                <Button
-                                  key={property}
-                                  variant={selectedProperties.includes(property) ? "default" : "outline"}
-                                  size="sm"
-                                  className={`h-6 text-xs rounded font-medium transition-all duration-200 cursor-pointer ${
-                                    selectedProperties.includes(property)
-                                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                      : 'text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
-                                  }`}
-                                  onClick={() => {
-                                    if (selectedProperties.includes(property)) {
-                                      setSelectedProperties(selectedProperties.filter(p => p !== property));
-                                    } else {
-                                      setSelectedProperties([...selectedProperties, property]);
+                            {displaySettings.viewType === "timeline"
+                              ? [
+                                  "Milestones",
+                                  "Priority",
+                                  "Status",
+                                  "Health",
+                                  "Lead",
+                                  "Dependencies",
+                                  "Predictions",
+                                  "Members",
+                                  "Teams",
+                                  "Target Date",
+                                  "Start Date",
+                                  "Created",
+                                  "Updated",
+                                  "Completed",
+                                  "Labels",
+                                ].map((property) => (
+                                  <Button
+                                    key={property}
+                                    variant={
+                                      selectedProperties.includes(property)
+                                        ? "default"
+                                        : "outline"
                                     }
-                                  }}
-                                >
-                                  {property}
-                                </Button>
-                              ))
-                            ) : displaySettings.viewType === 'board' ? (
-                              // Board-specific properties when Board view is selected
-                              ['Milestones', 'Description', 'Priority', 'Status', 'Health', 'Teams', 'Lead', 'Members', 'Target Date', 'Dependencies', 'Start Date', 'Created', 'Updated', 'Completed', 'Labels'].map((property) => (
-                                <Button
-                                  key={property}
-                                  variant={selectedProperties.includes(property) ? "default" : "outline"}
-                                  size="sm"
-                                  className={`h-6 text-xs rounded font-medium transition-all duration-200 cursor-pointer ${
-                                    selectedProperties.includes(property)
-                                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                      : 'text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
-                                  }`}
-                                  onClick={() => {
-                                    if (selectedProperties.includes(property)) {
-                                      setSelectedProperties(selectedProperties.filter(p => p !== property));
-                                    } else {
-                                      setSelectedProperties([...selectedProperties, property]);
+                                    size="sm"
+                                    className={`h-6 text-xs rounded font-medium transition-all duration-200 cursor-pointer ${
+                                      selectedProperties.includes(property)
+                                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                                        : "text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                                    }`}
+                                    onClick={() => {
+                                      if (
+                                        selectedProperties.includes(property)
+                                      ) {
+                                        setSelectedProperties(
+                                          selectedProperties.filter(
+                                            (p) => p !== property
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedProperties([
+                                          ...selectedProperties,
+                                          property,
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    {property}
+                                  </Button>
+                                ))
+                              : displaySettings.viewType === "board"
+                              ? // Board-specific properties when Board view is selected
+                                [
+                                  "Milestones",
+                                  "Description",
+                                  "Priority",
+                                  "Status",
+                                  "Health",
+                                  "Teams",
+                                  "Lead",
+                                  "Members",
+                                  "Target Date",
+                                  "Dependencies",
+                                  "Start Date",
+                                  "Created",
+                                  "Updated",
+                                  "Completed",
+                                  "Labels",
+                                ].map((property) => (
+                                  <Button
+                                    key={property}
+                                    variant={
+                                      selectedProperties.includes(property)
+                                        ? "default"
+                                        : "outline"
                                     }
-                                  }}
-                                >
-                                  {property}
-                                </Button>
-                              ))
-                            ) : (
-                              // List view properties
-                              ['Milestones', 'Priority', 'Status', 'Health', 'Teams', 'Lead', 'Target Date', 'Members', 'Dependencies', 'Start Date', 'Created', 'Updated', 'Completed', 'Labels'].map((property) => (
-                                <Button
-                                  key={property}
-                                  variant={selectedProperties.includes(property) ? "default" : "outline"}
-                                  size="sm"
-                                  className={`h-6 text-xs rounded font-medium transition-all duration-200 cursor-pointer ${
-                                    selectedProperties.includes(property)
-                                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                      : 'text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'
-                                  }`}
-                                  onClick={() => {
-                                    if (selectedProperties.includes(property)) {
-                                      setSelectedProperties(selectedProperties.filter(p => p !== property));
-                                    } else {
-                                      setSelectedProperties([...selectedProperties, property]);
+                                    size="sm"
+                                    className={`h-6 text-xs rounded font-medium transition-all duration-200 cursor-pointer ${
+                                      selectedProperties.includes(property)
+                                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                                        : "text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                                    }`}
+                                    onClick={() => {
+                                      if (
+                                        selectedProperties.includes(property)
+                                      ) {
+                                        setSelectedProperties(
+                                          selectedProperties.filter(
+                                            (p) => p !== property
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedProperties([
+                                          ...selectedProperties,
+                                          property,
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    {property}
+                                  </Button>
+                                ))
+                              : // List view properties
+                                [
+                                  "Milestones",
+                                  "Priority",
+                                  "Status",
+                                  "Health",
+                                  "Teams",
+                                  "Lead",
+                                  "Target Date",
+                                  "Members",
+                                  "Dependencies",
+                                  "Start Date",
+                                  "Created",
+                                  "Updated",
+                                  "Completed",
+                                  "Labels",
+                                ].map((property) => (
+                                  <Button
+                                    key={property}
+                                    variant={
+                                      selectedProperties.includes(property)
+                                        ? "default"
+                                        : "outline"
                                     }
-                                  }}
-                                >
-                                  {property}
-                                </Button>
-                              ))
-                            )}
+                                    size="sm"
+                                    className={`h-6 text-xs rounded font-medium transition-all duration-200 cursor-pointer ${
+                                      selectedProperties.includes(property)
+                                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                                        : "text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                                    }`}
+                                    onClick={() => {
+                                      if (
+                                        selectedProperties.includes(property)
+                                      ) {
+                                        setSelectedProperties(
+                                          selectedProperties.filter(
+                                            (p) => p !== property
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedProperties([
+                                          ...selectedProperties,
+                                          property,
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    {property}
+                                  </Button>
+                                ))}
                           </div>
-                          
+
                           {/* Add Label Group Button - Only show for List view */}
-                          {displaySettings.viewType === 'list' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                          {displaySettings.viewType === "list" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="mt-3 text-xs text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 rounded font-medium transition-all duration-200"
                             >
                               Add label group...
                             </Button>
                           )}
-                          
+
                           {/* Action Buttons - Show when properties are modified */}
-                          {JSON.stringify(selectedProperties.sort()) !== JSON.stringify(defaultProperties.sort()) && (
+                          {JSON.stringify(selectedProperties.sort()) !==
+                            JSON.stringify(defaultProperties.sort()) && (
                             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                                onClick={() => setSelectedProperties([...defaultProperties])}
+                                onClick={() =>
+                                  setSelectedProperties([...defaultProperties])
+                                }
                               >
                                 Reset
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                 onClick={() => setShowDefaultModal(true)}
                               >
@@ -1583,7 +1955,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 <p>Display Settings</p>
               </TooltipContent>
             </Tooltip>
-            
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline">
@@ -1595,13 +1967,13 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 <p>Assign</p>
               </TooltipContent>
             </Tooltip>
-            
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
+                <Button
                   className="bg-gradient-primary hover:opacity-90"
                   onClick={() => {
-                    setSelectedColumnStatus('todo');
+                    setSelectedColumnStatus("todo");
                     setShowAddTaskModal(true);
                   }}
                 >
@@ -1617,55 +1989,59 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         </div>
 
         {/* Conditional View Rendering */}
-        {displaySettings.viewType === 'board' ? (
+        {displaySettings.viewType === "board" ? (
           /* Board View - Kanban Columns */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-6">
-          {getDisplayColumns().map((column, columnIndex) => {
-            const columnTasks = getTasksForColumn(column.id);
-            const parentTasks = columnTasks.filter(task => !task.parentId);
-            
-            return (
-              <div key={column.id} className="min-w-0">
-                {/* Column Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                    <h3 className="font-semibold text-foreground">{column.title}</h3>
-                    <Badge variant="outline" className="text-xs">
-                      {columnTasks.length}
-                    </Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-6">
+            {getDisplayColumns().map((column, columnIndex) => {
+              const columnTasks = getTasksForColumn(column.id);
+              const parentTasks = columnTasks.filter((task) => !task.parentId);
+
+              return (
+                <div key={column.id} className="min-w-0">
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${column.color}`} />
+                      <h3 className="font-semibold text-foreground">
+                        {column.title}
+                      </h3>
+                      <Badge variant="outline" className="text-xs">
+                        {columnTasks.length}
+                      </Badge>
+                    </div>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </div>
 
-                {/* Tasks */}
-                <div className="space-y-3">
-                  {displaySettings.viewType === 'nested' ? (
-                    parentTasks.map((task, index) => renderNestedTask(task, 0, index, columnIndex))
-                  ) : (
-                      columnTasks.map((task, index) => renderBoardCard(task, index, columnIndex))
-                  )}
+                  {/* Tasks */}
+                  <div className="space-y-3">
+                    {displaySettings.viewType === "nested"
+                      ? parentTasks.map((task, index) =>
+                          renderNestedTask(task, 0, index, columnIndex)
+                        )
+                      : columnTasks.map((task, index) =>
+                          renderBoardCard(task, index, columnIndex)
+                        )}
 
-                  {/* Add Task Button */}
-                  <Button 
-                    variant="ghost" 
-                    className="w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-primary-light text-muted-foreground hover:text-primary"
-                    onClick={() => {
-                      setSelectedColumnStatus(column.id);
-                      setShowAddTaskModal(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Task
-                  </Button>
+                    {/* Add Task Button */}
+                    <Button
+                      variant="ghost"
+                      className="w-full border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-primary-light text-muted-foreground hover:text-primary"
+                      onClick={() => {
+                        setSelectedColumnStatus(column.id);
+                        setShowAddTaskModal(true);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Task
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
-        ) : displaySettings.viewType === 'list' ? (
+        ) : displaySettings.viewType === "list" ? (
           /* List View */
           <div className="space-y-4 pb-6">
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -1675,17 +2051,20 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   <div className="flex gap-6 text-sm font-medium text-gray-700">
                     <div className="w-64">Task</div>
                     {selectedProperties.map((property) => (
-                      <div key={property} className="w-32 flex justify-center items-center">
+                      <div
+                        key={property}
+                        className="w-32 flex justify-center items-center"
+                      >
                         {property}
                       </div>
                     ))}
                   </div>
-        </div>
-                
+                </div>
+
                 {/* List Items */}
                 <div className="divide-y divide-gray-200">
                   {getFilteredTasks().map((task, index) => (
-                    <div 
+                    <div
                       key={task.id}
                       className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => handleOpenDetail(task)}
@@ -1697,14 +2076,21 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                               <FileText className="w-4 h-4 text-blue-600" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className="font-medium text-gray-900 text-sm truncate">{task.title}</h4>
-                              <p className="text-xs text-gray-500 truncate">{task.description}</p>
+                              <h4 className="font-medium text-gray-900 text-sm truncate">
+                                {task.title}
+                              </h4>
+                              <p className="text-xs text-gray-500 truncate">
+                                {task.description}
+                              </p>
                             </div>
                           </div>
                         </div>
-                        
+
                         {selectedProperties.map((property) => (
-                          <div key={property} className="w-32 flex justify-center items-center">
+                          <div
+                            key={property}
+                            className="w-32 flex justify-center items-center"
+                          >
                             {renderPropertyValue(task, property)}
                           </div>
                         ))}
@@ -1715,7 +2101,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
             </div>
           </div>
-        ) : displaySettings.viewType === 'timeline' ? (
+        ) : displaySettings.viewType === "timeline" ? (
           /* Timeline View - Gantt Chart */
           <div className="space-y-4 pb-6">
             {/* Timeline Header */}
@@ -1726,16 +2112,16 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     onClick={() => {
                       const prevDate = new Date(timelineStartDate);
                       switch (displaySettings.timelineZoom) {
-                        case 'year':
+                        case "year":
                           prevDate.setFullYear(prevDate.getFullYear() - 1);
                           break;
-                        case 'quarter':
+                        case "quarter":
                           prevDate.setMonth(prevDate.getMonth() - 3);
                           break;
-                        case 'month':
+                        case "month":
                           prevDate.setDate(prevDate.getDate() - 28);
                           break;
-                        case 'week':
+                        case "week":
                           prevDate.setDate(prevDate.getDate() - 7);
                           break;
                       }
@@ -1745,7 +2131,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  
+
                   <button
                     onClick={() => {
                       const today = new Date();
@@ -1756,21 +2142,21 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   >
                     Today
                   </button>
-                  
+
                   <button
                     onClick={() => {
                       const nextDate = new Date(timelineStartDate);
                       switch (displaySettings.timelineZoom) {
-                        case 'year':
+                        case "year":
                           nextDate.setFullYear(nextDate.getFullYear() + 1);
                           break;
-                        case 'quarter':
+                        case "quarter":
                           nextDate.setMonth(nextDate.getMonth() + 3);
                           break;
-                        case 'month':
+                        case "month":
                           nextDate.setDate(nextDate.getDate() + 28);
                           break;
-                        case 'week':
+                        case "week":
                           nextDate.setDate(nextDate.getDate() + 7);
                           break;
                       }
@@ -1781,11 +2167,16 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
-                  <Select 
+                  <Select
                     value={displaySettings.timelineZoom}
-                    onValueChange={(value) => setDisplaySettings({...displaySettings, timelineZoom: value})}
+                    onValueChange={(value) =>
+                      setDisplaySettings({
+                        ...displaySettings,
+                        timelineZoom: value,
+                      })
+                    }
                   >
                     <SelectTrigger className="w-24 h-8 text-xs">
                       <SelectValue />
@@ -1812,8 +2203,8 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                       <h3 className="font-semibold text-gray-800">Tasks</h3>
                     </div>
                     {getFilteredTasks().map((task) => (
-                      <div 
-                        key={task.id} 
+                      <div
+                        key={task.id}
                         className="p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedTaskForDetails(task);
@@ -1823,10 +2214,14 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <div className="flex items-center space-x-3">
                           <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm text-gray-900 truncate">{task.title}</div>
-                            <div className="text-xs text-gray-500">{task.assignee.name}</div>
+                            <div className="font-medium text-sm text-gray-900 truncate">
+                              {task.title}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {task.assignee.name}
+                            </div>
                           </div>
-                          <div 
+                          <div
                             className="flex items-center space-x-1 p-1 hover:bg-gray-200 rounded"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1834,7 +2229,9 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                               setShowFullOverview(true);
                             }}
                           >
-                            <div className="text-xs text-gray-400 hover:text-gray-600">→</div>
+                            <div className="text-xs text-gray-400 hover:text-gray-600">
+                              →
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1848,17 +2245,29 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                       <div className="border-b bg-gray-50">
                         <div className="flex">
                           {generateTimelineDates().map((date, index) => (
-                            <div key={index} className="border-r min-w-[120px] p-2 text-center">
+                            <div
+                              key={index}
+                              className="border-r min-w-[120px] p-2 text-center"
+                            >
                               <div className="text-xs font-medium text-gray-600">
-                                {displaySettings.timelineZoom === 'year' && getMonthName(date)}
-                                {displaySettings.timelineZoom === 'quarter' && getQuarterName(date)}
-                                {displaySettings.timelineZoom === 'month' && `${getMonthName(date)} ${date.getDate()}`}
-                                {displaySettings.timelineZoom === 'week' && `${date.getDate()} ${date.toLocaleDateString('en-US', { weekday: 'short' })}`}
+                                {displaySettings.timelineZoom === "year" &&
+                                  getMonthName(date)}
+                                {displaySettings.timelineZoom === "quarter" &&
+                                  getQuarterName(date)}
+                                {displaySettings.timelineZoom === "month" &&
+                                  `${getMonthName(date)} ${date.getDate()}`}
+                                {displaySettings.timelineZoom === "week" &&
+                                  `${date.getDate()} ${date.toLocaleDateString(
+                                    "en-US",
+                                    { weekday: "short" }
+                                  )}`}
                               </div>
                               {displaySettings.showWeekNumbers && (
                                 <div className="text-xs text-gray-500">
-                                  {displaySettings.timelineZoom === 'month' && `Week ${getWeekNumber(date)}`}
-                                  {displaySettings.timelineZoom === 'week' && `Week ${getWeekNumber(date)}`}
+                                  {displaySettings.timelineZoom === "month" &&
+                                    `Week ${getWeekNumber(date)}`}
+                                  {displaySettings.timelineZoom === "week" &&
+                                    `Week ${getWeekNumber(date)}`}
                                 </div>
                               )}
                             </div>
@@ -1874,22 +2283,36 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                             <div className="flex h-16">
                               {generateTimelineDates().map((date, index) => {
                                 const taskStart = new Date(task.dueDate);
-                                const isTaskInPeriod = taskStart.getTime() >= date.getTime() && 
-                                  taskStart.getTime() < new Date(date.getTime() + (displaySettings.timelineZoom === 'week' ? 24*60*60*1000 : 7*24*60*60*1000)).getTime();
-                                
+                                const isTaskInPeriod =
+                                  taskStart.getTime() >= date.getTime() &&
+                                  taskStart.getTime() <
+                                    new Date(
+                                      date.getTime() +
+                                        (displaySettings.timelineZoom === "week"
+                                          ? 24 * 60 * 60 * 1000
+                                          : 7 * 24 * 60 * 60 * 1000)
+                                    ).getTime();
+
                                 return (
-                                  <div key={index} className="border-r min-w-[120px] relative">
+                                  <div
+                                    key={index}
+                                    className="border-r min-w-[120px] relative"
+                                  >
                                     {isTaskInPeriod && (
-                                      <div 
+                                      <div
                                         className="absolute top-2 left-2 right-2 bottom-2 bg-blue-500 rounded text-white text-xs flex items-center justify-center font-medium relative overflow-hidden"
                                         title={`${task.title} - ${task.status} - ${progress}%`}
                                       >
                                         {/* Progress bar overlay */}
-                                        <div 
-                                          className={`absolute top-0 left-0 h-full ${getProgressColor(progress)} transition-all duration-300`}
+                                        <div
+                                          className={`absolute top-0 left-0 h-full ${getProgressColor(
+                                            progress
+                                          )} transition-all duration-300`}
                                           style={{ width: `${progress}%` }}
                                         ></div>
-                                        <span className="relative z-10">{task.title}</span>
+                                        <span className="relative z-10">
+                                          {task.title}
+                                        </span>
                                       </div>
                                     )}
                                     {isToday(date) && (
@@ -1911,7 +2334,9 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               {showDetailsPanel && selectedTaskForDetails && (
                 <div className="w-80 bg-white rounded-lg border border-gray-200 p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">{selectedTaskForDetails.title}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {selectedTaskForDetails.title}
+                    </h3>
                     <div className="flex items-center space-x-2">
                       <button className="p-1 hover:bg-gray-100 rounded">
                         <Heart className="w-4 h-4 text-gray-400" />
@@ -1919,7 +2344,7 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                       <button className="p-1 hover:bg-gray-100 rounded">
                         <MoreHorizontal className="w-4 h-4 text-gray-400" />
                       </button>
-                      <button 
+                      <button
                         className="p-1 hover:bg-gray-100 rounded"
                         onClick={() => setShowDetailsPanel(false)}
                       >
@@ -1931,63 +2356,101 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   <div className="space-y-4">
                     {/* Properties Section */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Properties</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        Properties
+                      </h4>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-600">Status</span>
                           <div className="flex items-center space-x-2">
                             {getStatusIcon(selectedTaskForDetails.status)}
-                            <span className="text-xs text-gray-700 capitalize">{selectedTaskForDetails.status.replace('-', ' ')}</span>
+                            <span className="text-xs text-gray-700 capitalize">
+                              {selectedTaskForDetails.status.replace("-", " ")}
+                            </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">Priority</span>
-                          <Badge className={`${getPriorityColor(selectedTaskForDetails.priority)} text-xs`}>
+                          <span className="text-xs text-gray-600">
+                            Priority
+                          </span>
+                          <Badge
+                            className={`${getPriorityColor(
+                              selectedTaskForDetails.priority
+                            )} text-xs`}
+                          >
                             {selectedTaskForDetails.priority}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-600">Lead</span>
                           <div className="flex items-center space-x-2">
                             <Avatar className="w-6 h-6">
                               <AvatarFallback className="text-xs">
-                                {generateInitials(selectedTaskForDetails.assignee.name)}
+                                {generateInitials(
+                                  selectedTaskForDetails.assignee.name
+                                )}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-xs text-gray-700">{selectedTaskForDetails.assignee.name}</span>
+                            <span className="text-xs text-gray-700">
+                              {selectedTaskForDetails.assignee.name}
+                            </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">Start date</span>
-                          <span className="text-xs text-gray-700">{new Date(selectedTaskForDetails.dueDate).toLocaleDateString()}</span>
+                          <span className="text-xs text-gray-600">
+                            Start date
+                          </span>
+                          <span className="text-xs text-gray-700">
+                            {new Date(
+                              selectedTaskForDetails.dueDate
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">Target date</span>
-                          <span className="text-xs text-gray-700">{new Date(selectedTaskForDetails.dueDate).toLocaleDateString()}</span>
+                          <span className="text-xs text-gray-600">
+                            Target date
+                          </span>
+                          <span className="text-xs text-gray-700">
+                            {new Date(
+                              selectedTaskForDetails.dueDate
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     {/* Progress Section */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Progress</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        Progress
+                      </h4>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-600">Scope</span>
                           <span className="text-xs text-gray-700">1</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">Completed</span>
-                          <span className="text-xs text-gray-700">{calculateTaskProgress(selectedTaskForDetails)}%</span>
+                          <span className="text-xs text-gray-600">
+                            Completed
+                          </span>
+                          <span className="text-xs text-gray-700">
+                            {calculateTaskProgress(selectedTaskForDetails)}%
+                          </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${getProgressColor(calculateTaskProgress(selectedTaskForDetails))}`}
-                            style={{ width: `${calculateTaskProgress(selectedTaskForDetails)}%` }}
+                          <div
+                            className={`h-2 rounded-full ${getProgressColor(
+                              calculateTaskProgress(selectedTaskForDetails)
+                            )}`}
+                            style={{
+                              width: `${calculateTaskProgress(
+                                selectedTaskForDetails
+                              )}%`,
+                            }}
                           ></div>
                         </div>
                       </div>
@@ -2012,8 +2475,13 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
           /* Default View (fallback) */
           <div className="space-y-4 pb-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select a View Type</h3>
-              <p className="text-gray-600">Please select a view type from the Display Settings to see the content.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Select a View Type
+              </h3>
+              <p className="text-gray-600">
+                Please select a view type from the Display Settings to see the
+                content.
+              </p>
             </div>
           </div>
         )}
@@ -2038,7 +2506,9 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             <div className="space-y-4">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Paperclip className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600 mb-2">Drag and drop files here, or click to browse</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Drag and drop files here, or click to browse
+                </p>
                 <input
                   type="file"
                   multiple
@@ -2048,16 +2518,18 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                   ref={(input) => {
                     if (input) {
-                      input.style.display = 'none';
+                      input.style.display = "none";
                     }
                   }}
                 />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="cursor-pointer"
                   onClick={() => {
-                    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+                    const fileInput = document.getElementById(
+                      "file-upload"
+                    ) as HTMLInputElement;
                     if (fileInput) {
                       fileInput.click();
                     }
@@ -2067,12 +2539,18 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 </Button>
                 {selectedFiles.length > 0 && (
                   <div className="mt-4 text-left">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Selected files:</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Selected files:
+                    </p>
                     <div className="space-y-1">
                       {selectedFiles.map((file, index) => (
-                        <div key={index} className="text-sm text-gray-600 flex items-center">
+                        <div
+                          key={index}
+                          className="text-sm text-gray-600 flex items-center"
+                        >
                           <FileText className="w-4 h-4 mr-2" />
-                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                          MB)
                         </div>
                       ))}
                     </div>
@@ -2081,8 +2559,8 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
               <div>
                 <Label>Description (optional)</Label>
-                <Textarea 
-                  placeholder="Add a description for the document" 
+                <Textarea
+                  placeholder="Add a description for the document"
                   rows={2}
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
@@ -2090,17 +2568,17 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setSelectedFiles([]);
-                  setUploadDescription('');
+                  setUploadDescription("");
                   setShowUploadModal(false);
                 }}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleUpload}
                 disabled={selectedFiles.length === 0}
               >
@@ -2111,7 +2589,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         </Dialog>
 
         {/* Development Modal */}
-        <Dialog open={showDevelopmentModal} onOpenChange={setShowDevelopmentModal}>
+        <Dialog
+          open={showDevelopmentModal}
+          onOpenChange={setShowDevelopmentModal}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Development Item</DialogTitle>
@@ -2140,7 +2621,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowDevelopmentModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDevelopmentModal(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={() => setShowDevelopmentModal(false)}>
@@ -2164,32 +2648,40 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <div className="w-10 h-10 bg-green-500 rounded flex items-center justify-center animate-in bounce-in duration-800 delay-300 hover:scale-110 hover:rotate-12 transition-all duration-300">
                           <FileText className="w-5 h-5 text-white animate-pulse" />
                         </div>
-                        <h2 className="text-3xl font-bold text-slate-800 break-words animate-in slide-in-from-left-4 duration-1000 delay-600">{selectedTask.title}</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 break-words animate-in slide-in-from-left-4 duration-1000 delay-600">
+                          {selectedTask.title}
+                        </h2>
                       </div>
                       <div className="text-sm text-slate-200 mb-1"></div>
                     </div>
                     <div className="flex items-center space-x-1 animate-in slide-in-from-right-4 duration-700 delay-1200">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="h-8 w-8 p-0 hover:bg-white/20 hover:text-white hover:scale-110 hover:rotate-6 transition-all duration-300"
                         onClick={handleUploadDocument}
                         title="Upload document"
                       >
                         <Paperclip className="w-4 h-4 text-slate-700 hover:animate-spin" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className={`h-8 w-8 p-0 hover:bg-white/20 hover:text-white hover:scale-110 hover:rotate-6 transition-all duration-300 ${isLiked ? 'text-red-500' : ''}`}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-8 w-8 p-0 hover:bg-white/20 hover:text-white hover:scale-110 hover:rotate-6 transition-all duration-300 ${
+                          isLiked ? "text-red-500" : ""
+                        }`}
                         onClick={handleLikeToggle}
                         title={isLiked ? "Unlike" : "Like"}
                       >
-                        <Heart className={`w-4 h-4 text-slate-700 hover:animate-pulse ${isLiked ? 'fill-current' : ''}`} />
+                        <Heart
+                          className={`w-4 h-4 text-slate-700 hover:animate-pulse ${
+                            isLiked ? "fill-current" : ""
+                          }`}
+                        />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="h-8 w-8 p-0 hover:bg-white/20 hover:text-white hover:scale-110 hover:rotate-6 transition-all duration-300"
                         onClick={() => setShowDetailModal(false)}
                         title="Close"
@@ -2197,22 +2689,24 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <X className="w-4 h-4 text-slate-700 hover:animate-spin" />
                       </Button>
                       <div className="relative" ref={optionsMenuRef}>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-8 w-8 p-0 hover:bg-white/20 hover:text-white hover:scale-110 hover:rotate-6 transition-all duration-300"
                           onClick={handleOptionsMenu}
                           title="More options"
                         >
                           <MoreHorizontal className="w-4 h-4 text-slate-700 hover:animate-pulse" />
                         </Button>
-                        
+
                         {showOptionsMenu && (
                           <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
                             <div className="py-2">
                               <button
                                 onClick={() => {
-                                  navigator.clipboard.writeText(window.location.href);
+                                  navigator.clipboard.writeText(
+                                    window.location.href
+                                  );
                                   setShowOptionsMenu(false);
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center transition-colors"
@@ -2265,81 +2759,130 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   </div>
 
                   {/* Attachments */}
-                  {selectedTask.attachmentsList && selectedTask.attachmentsList.length > 0 && (
-                    <div className="mb-4 animate-in slide-in-from-left-4 duration-1000 delay-2000">
-                      <h3 className="font-semibold text-foreground mb-4 text-lg">Attachments</h3>
-                      <div className={`grid gap-4 ${selectedTask.attachmentsList.length === 1 ? 'grid-cols-1' : selectedTask.attachmentsList.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} ${selectedTask.attachmentsList.length > 3 ? 'max-h-40 overflow-y-auto pr-2' : ''}`}>
-                        {selectedTask.attachmentsList.map((attachment, index) => (
-                          <div key={index} className="flex flex-col items-center p-3 border border-gray-200 rounded-lg bg-gray-50 min-w-0 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200">
-                            <div className="w-16 h-12 bg-white rounded-lg border flex items-center justify-center flex-shrink-0 mb-2">
-                              <FileText className="w-6 h-6 text-gray-400" />
-                            </div>
-                            <div className="flex-1 min-w-0 text-center">
-                              <div className="font-medium text-foreground text-sm break-words line-clamp-2">{attachment.name}</div>
-                              <div className="text-xs text-muted-foreground mt-1">{attachment.size}</div>
-                              {attachment.description && (
-                                <div className="text-xs text-gray-600 mt-1 italic break-words line-clamp-1">
-                                  "{attachment.description}"
+                  {selectedTask.attachmentsList &&
+                    selectedTask.attachmentsList.length > 0 && (
+                      <div className="mb-4 animate-in slide-in-from-left-4 duration-1000 delay-2000">
+                        <h3 className="font-semibold text-foreground mb-4 text-lg">
+                          Attachments
+                        </h3>
+                        <div
+                          className={`grid gap-4 ${
+                            selectedTask.attachmentsList.length === 1
+                              ? "grid-cols-1"
+                              : selectedTask.attachmentsList.length === 2
+                              ? "grid-cols-2"
+                              : "grid-cols-3"
+                          } ${
+                            selectedTask.attachmentsList.length > 3
+                              ? "max-h-40 overflow-y-auto pr-2"
+                              : ""
+                          }`}
+                        >
+                          {selectedTask.attachmentsList.map(
+                            (attachment, index) => (
+                              <div
+                                key={index}
+                                className="flex flex-col items-center p-3 border border-gray-200 rounded-lg bg-gray-50 min-w-0 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200"
+                              >
+                                <div className="w-16 h-12 bg-white rounded-lg border flex items-center justify-center flex-shrink-0 mb-2">
+                                  <FileText className="w-6 h-6 text-gray-400" />
                                 </div>
-                              )}
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 hover:bg-primary/20 hover:text-foreground mt-2"
-                              onClick={() => handleDownload(attachment)}
-                              title={`Download ${attachment.name}`}
-                            >
-                              <Download className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ))}
+                                <div className="flex-1 min-w-0 text-center">
+                                  <div className="font-medium text-foreground text-sm break-words line-clamp-2">
+                                    {attachment.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {attachment.size}
+                                  </div>
+                                  {attachment.description && (
+                                    <div className="text-xs text-gray-600 mt-1 italic break-words line-clamp-1">
+                                      "{attachment.description}"
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 hover:bg-primary/20 hover:text-foreground mt-2"
+                                  onClick={() => handleDownload(attachment)}
+                                  title={`Download ${attachment.name}`}
+                                >
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Activity/Comments */}
                   <div className="bg-gradient-to-r from-slate-100 to-slate-200 rounded-lg border border-slate-300 p-4 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 animate-in slide-in-from-right-4 duration-1000 delay-2500">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-foreground text-lg">Activity</h3>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <h3 className="font-semibold text-foreground text-lg">
+                        Activity
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setCommentsExpanded(!commentsExpanded)}
                         className="flex items-center space-x-2 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300"
                       >
                         <span className="text-sm font-medium">Comments</span>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${commentsExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${
+                            commentsExpanded ? "rotate-180" : ""
+                          }`}
+                        />
                       </Button>
                     </div>
-                    
+
                     {/* Comments List - Show above input when expanded */}
                     {commentsExpanded && selectedTask.commentsList && (
-                      <div className={`space-y-4 ${selectedTask.commentsList.length > 2 ? 'max-h-32 overflow-y-auto pr-2' : ''}`}>
+                      <div
+                        className={`space-y-4 ${
+                          selectedTask.commentsList.length > 2
+                            ? "max-h-32 overflow-y-auto pr-2"
+                            : ""
+                        }`}
+                      >
                         {selectedTask.commentsList.map((comment) => (
-                          <div key={comment.id} className="flex items-start space-x-3">
+                          <div
+                            key={comment.id}
+                            className="flex items-start space-x-3"
+                          >
                             <Avatar className="w-8 h-8 flex-shrink-0">
-                              <AvatarFallback>{generateInitials(comment.author)}</AvatarFallback>
+                              <AvatarFallback>
+                                {generateInitials(comment.author)}
+                              </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center space-x-2 mb-2">
-                                <span className="font-medium text-foreground">{comment.author}</span>
+                                <span className="font-medium text-foreground">
+                                  {comment.author}
+                                </span>
                                 <span className="text-sm text-muted-foreground">
-                                  {new Date(comment.createdAt).toLocaleDateString()}
+                                  {new Date(
+                                    comment.createdAt
+                                  ).toLocaleDateString()}
                                 </span>
                               </div>
-                              <p className="text-foreground leading-relaxed break-words">{comment.content}</p>
+                              <p className="text-foreground leading-relaxed break-words">
+                                {comment.content}
+                              </p>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Comment Input - Outside the Activity card */}
                   <div className="flex items-center space-x-3 mt-4">
                     <Avatar className="w-8 h-8 flex-shrink-0">
-                      <AvatarFallback>{generateInitials('Current User')}</AvatarFallback>
+                      <AvatarFallback>
+                        {generateInitials("Current User")}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <Input
@@ -2347,16 +2890,16 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyPress={(e) => {
-                          if (e.key === 'Enter' && newComment.trim()) {
+                          if (e.key === "Enter" && newComment.trim()) {
                             handleAddComment();
                           }
                         }}
                         className="flex-1"
                       />
                     </div>
-                    <Button 
-                      onClick={handleAddComment} 
-                      disabled={!newComment.trim()} 
+                    <Button
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
                       className="px-4"
                     >
                       Add Comment
@@ -2369,21 +2912,25 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   {/* Header */}
                   <div className="flex items-center justify-between mb-8 bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-100 -mx-6 -mt-6 px-6 py-7 animate-in slide-in-from-top-2 duration-700">
                     <div className="animate-in slide-in-from-left-4 duration-1000 delay-800">
-                      <h3 className="font-bold text-slate-800 text-xl">Details</h3>
-                      <p className="text-slate-600 text-sm mt-1">Item information & actions</p>
+                      <h3 className="font-bold text-slate-800 text-xl">
+                        Details
+                      </h3>
+                      <p className="text-slate-600 text-sm mt-1">
+                        Item information & actions
+                      </p>
                     </div>
                     <div className="flex space-x-1">
                       <div className="relative" ref={viewMenuRef}>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-9 w-9 p-0 hover:bg-white/20 hover:text-white rounded-lg transition-all hover:scale-110 hover:rotate-6 duration-300"
                           onClick={handleViewMenu}
                           title="View options"
                         >
                           <Eye className="w-4 h-4 text-slate-700 hover:animate-pulse" />
                         </Button>
-                        
+
                         {showViewMenu && (
                           <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50">
                             <div className="py-2">
@@ -2418,18 +2965,18 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="relative" ref={sidebarOptionsMenuRef}>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-9 w-9 p-0 hover:bg-white/20 hover:text-white rounded-lg transition-all hover:scale-110 hover:rotate-6 duration-300"
                           onClick={handleSidebarOptionsMenu}
                           title="More options"
                         >
                           <MoreHorizontal className="w-4 h-4 text-slate-700 hover:animate-pulse" />
                         </Button>
-                        
+
                         {showSidebarOptionsMenu && (
                           <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50">
                             <div className="py-2">
@@ -2488,58 +3035,75 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         </h4>
                         <div className="relative" ref={statusDropdownRef}>
                           <div className="flex items-center space-x-2">
-                            <Button 
-                              variant="default" 
+                            <Button
+                              variant="default"
                               className={`px-3 py-1 text-xs font-medium rounded-lg transition-all shadow-md hover:shadow-lg ${
-                                selectedTask.status === 'done' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200' :
-                                selectedTask.status === 'todo' ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-200' :
-                                selectedTask.status === 'inprogress' ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-200' :
-                                'bg-slate-500 hover:bg-slate-600 shadow-slate-200'
+                                selectedTask.status === "done"
+                                  ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200"
+                                  : selectedTask.status === "todo"
+                                  ? "bg-orange-500 hover:bg-orange-600 shadow-orange-200"
+                                  : selectedTask.status === "inprogress"
+                                  ? "bg-blue-500 hover:bg-blue-600 shadow-blue-200"
+                                  : "bg-slate-500 hover:bg-slate-600 shadow-slate-200"
                               } text-white`}
-                              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                              onClick={() =>
+                                setShowStatusDropdown(!showStatusDropdown)
+                              }
                             >
-                              {selectedTask.status === 'done' ? 'Done' : 
-                               selectedTask.status === 'todo' ? 'To Do' : 
-                               selectedTask.status === 'inprogress' ? 'In Progress' :
-                               selectedTask.status === 'review' ? 'In Review' :
-                               selectedTask.status}
+                              {selectedTask.status === "done"
+                                ? "Done"
+                                : selectedTask.status === "todo"
+                                ? "To Do"
+                                : selectedTask.status === "inprogress"
+                                ? "In Progress"
+                                : selectedTask.status === "review"
+                                ? "In Review"
+                                : selectedTask.status}
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               className="h-6 w-6 p-0 hover:bg-slate-100 rounded-lg transition-all"
-                              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                              onClick={() =>
+                                setShowStatusDropdown(!showStatusDropdown)
+                              }
                             >
-                              <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
+                              <ChevronDown
+                                className={`w-3 h-3 text-slate-500 transition-transform ${
+                                  showStatusDropdown ? "rotate-180" : ""
+                                }`}
+                              />
                             </Button>
                           </div>
-                          
+
                           {showStatusDropdown && (
                             <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-[9999]">
                               <div className="py-2">
                                 <button
-                                  onClick={() => handleStatusChange('todo')}
+                                  onClick={() => handleStatusChange("todo")}
                                   className="w-full text-left px-4 py-3 text-sm hover:bg-orange-50 hover:text-orange-700 flex items-center transition-colors"
                                 >
                                   <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
                                   To Do
                                 </button>
                                 <button
-                                  onClick={() => handleStatusChange('inprogress')}
+                                  onClick={() =>
+                                    handleStatusChange("inprogress")
+                                  }
                                   className="w-full text-left px-4 py-3 text-sm hover:bg-blue-50 hover:text-blue-700 flex items-center transition-colors"
                                 >
                                   <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                                   In Progress
                                 </button>
                                 <button
-                                  onClick={() => handleStatusChange('review')}
+                                  onClick={() => handleStatusChange("review")}
                                   className="w-full text-left px-4 py-3 text-sm hover:bg-yellow-50 hover:text-yellow-700 flex items-center transition-colors"
                                 >
                                   <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
                                   In Review
                                 </button>
                                 <button
-                                  onClick={() => handleStatusChange('done')}
+                                  onClick={() => handleStatusChange("done")}
                                   className="w-full text-left px-4 py-3 text-sm hover:bg-emerald-50 hover:text-emerald-700 flex items-center transition-colors"
                                 >
                                   <div className="w-3 h-3 bg-emerald-500 rounded-full mr-3"></div>
@@ -2552,7 +3116,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                       </div>
 
                       {/* Assignee */}
-                      <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowAssigneeModal(true)}>
+                      <div
+                        className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer"
+                        onClick={() => setShowAssigneeModal(true)}
+                      >
                         <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
                           <User className="w-4 h-4 mr-2 text-slate-500" />
                           Assignee
@@ -2560,24 +3127,33 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200">
                           <Avatar className="w-8 h-8 ring-2 ring-white shadow-sm hover:scale-110 transition-transform duration-200">
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-xs">
-                              {generateInitials(selectedAssignee || selectedTask.assignee.name)}
+                              {generateInitials(
+                                selectedAssignee || selectedTask.assignee.name
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="font-medium text-slate-800 text-sm">
                               {selectedAssignee || selectedTask.assignee.name}
                             </span>
-                            <div className="text-xs text-slate-500">Assigned</div>
+                            <div className="text-xs text-slate-500">
+                              Assigned
+                            </div>
                           </div>
                         </div>
-                        <div className="mt-2 text-xs text-slate-400">Click to change assignee</div>
+                        <div className="mt-2 text-xs text-slate-400">
+                          Click to change assignee
+                        </div>
                       </div>
                     </div>
 
                     {/* Second Row: Labels and Reporter */}
                     <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-4 duration-800 delay-3500">
                       {/* Labels */}
-                      <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowLabelsModal(true)}>
+                      <div
+                        className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer"
+                        onClick={() => setShowLabelsModal(true)}
+                      >
                         <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
                           <Tag className="w-4 h-4 mr-2 text-slate-500" />
                           Labels
@@ -2586,7 +3162,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                           {selectedLabels.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {selectedLabels.map((label, index) => (
-                                <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                <span
+                                  key={index}
+                                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                                >
                                   {label}
                                 </span>
                               ))}
@@ -2595,11 +3174,16 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                             "No labels added"
                           )}
                         </div>
-                        <div className="mt-2 text-xs text-slate-400">Click to add labels</div>
+                        <div className="mt-2 text-xs text-slate-400">
+                          Click to add labels
+                        </div>
                       </div>
 
                       {/* Reporter */}
-                      <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer" onClick={() => setShowReporterModal(true)}>
+                      <div
+                        className="bg-white rounded-xl p-2 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 cursor-pointer"
+                        onClick={() => setShowReporterModal(true)}
+                      >
                         <h4 className="font-semibold text-slate-800 mb-2 flex items-center text-sm">
                           <User className="w-4 h-4 mr-2 text-slate-500" />
                           Reporter
@@ -2607,17 +3191,23 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200">
                           <Avatar className="w-8 h-8 ring-2 ring-white shadow-sm hover:scale-110 transition-transform duration-200">
                             <AvatarFallback className="bg-gradient-to-br from-green-500 to-green-600 text-white font-semibold text-xs">
-                              {generateInitials(selectedReporter || 'Current User')}
+                              {generateInitials(
+                                selectedReporter || "Current User"
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="font-medium text-slate-800 text-sm">
-                              {selectedReporter || 'Current User'}
+                              {selectedReporter || "Current User"}
                             </span>
-                            <div className="text-xs text-slate-500">Reporter</div>
+                            <div className="text-xs text-slate-500">
+                              Reporter
+                            </div>
                           </div>
                         </div>
-                        <div className="mt-2 text-xs text-slate-400">Click to change reporter</div>
+                        <div className="mt-2 text-xs text-slate-400">
+                          Click to change reporter
+                        </div>
                       </div>
                     </div>
 
@@ -2628,9 +3218,9 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                           <GitBranch className="w-4 h-4 mr-2 text-slate-500" />
                           Development
                         </h4>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all hover:scale-110 hover:rotate-90 duration-300"
                           onClick={handleDevelopmentAdd}
                         >
@@ -2641,22 +3231,35 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
                           <div className="flex items-center space-x-2">
                             <GitBranch className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm font-medium text-slate-700">{selectedTask.development?.branches || 0} branches</span>
+                            <span className="text-sm font-medium text-slate-700">
+                              {selectedTask.development?.branches || 0} branches
+                            </span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
                           <div className="flex items-center space-x-2">
                             <GitCommit className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm font-medium text-slate-700">{selectedTask.development?.commits || 0} commits</span>
+                            <span className="text-sm font-medium text-slate-700">
+                              {selectedTask.development?.commits || 0} commits
+                            </span>
                           </div>
-                          <span className="text-xs text-slate-500">9 days ago</span>
+                          <span className="text-xs text-slate-500">
+                            9 days ago
+                          </span>
                         </div>
                         <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
                           <div className="flex items-center space-x-2">
                             <GitPullRequest className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm font-medium text-slate-700">{selectedTask.development?.pullRequests || 0} pull requests</span>
+                            <span className="text-sm font-medium text-slate-700">
+                              {selectedTask.development?.pullRequests || 0} pull
+                              requests
+                            </span>
                           </div>
-                          <Button variant="outline" size="sm" className="h-6 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 px-3 text-xs font-medium hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all"
+                          >
                             OPEN
                           </Button>
                         </div>
@@ -2669,8 +3272,8 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <Link className="w-4 h-4 mr-2 text-slate-500" />
                         Share and Embed
                       </h4>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start text-slate-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all hover:scale-105 duration-200"
                       >
                         <Link className="w-4 h-4 mr-2 hover:animate-pulse" />
@@ -2693,7 +3296,9 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             <div className="space-y-4">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Paperclip className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600 mb-2">Drag and drop files here, or click to browse</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Drag and drop files here, or click to browse
+                </p>
                 <input
                   type="file"
                   multiple
@@ -2703,16 +3308,18 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                   ref={(input) => {
                     if (input) {
-                      input.style.display = 'none';
+                      input.style.display = "none";
                     }
                   }}
                 />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="cursor-pointer"
                   onClick={() => {
-                    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+                    const fileInput = document.getElementById(
+                      "file-upload"
+                    ) as HTMLInputElement;
                     if (fileInput) {
                       fileInput.click();
                     }
@@ -2722,12 +3329,18 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                 </Button>
                 {selectedFiles.length > 0 && (
                   <div className="mt-4 text-left">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Selected files:</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Selected files:
+                    </p>
                     <div className="space-y-1">
                       {selectedFiles.map((file, index) => (
-                        <div key={index} className="text-sm text-gray-600 flex items-center">
+                        <div
+                          key={index}
+                          className="text-sm text-gray-600 flex items-center"
+                        >
                           <FileText className="w-4 h-4 mr-2" />
-                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                          MB)
                         </div>
                       ))}
                     </div>
@@ -2736,8 +3349,8 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
               <div>
                 <Label>Description (optional)</Label>
-                <Textarea 
-                  placeholder="Add a description for the document" 
+                <Textarea
+                  placeholder="Add a description for the document"
                   rows={2}
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
@@ -2745,17 +3358,17 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setSelectedFiles([]);
-                  setUploadDescription('');
+                  setUploadDescription("");
                   setShowUploadModal(false);
                 }}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleUpload}
                 disabled={selectedFiles.length === 0}
               >
@@ -2778,11 +3391,11 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   placeholder="e.g., bug, feature, high-priority"
                   className="mt-1"
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       const value = e.currentTarget.value;
                       if (value.trim()) {
                         setSelectedLabels([...selectedLabels, value.trim()]);
-                        e.currentTarget.value = '';
+                        e.currentTarget.value = "";
                       }
                     }
                   }}
@@ -2791,24 +3404,30 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               <div>
                 <Label>Available Labels</Label>
                 <div className="mt-2 space-y-2">
-                  {['bug', 'feature', 'high-priority', 'documentation'].map((label) => (
-                    <div key={label} className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        id={label} 
-                        className="rounded"
-                        checked={selectedLabels.includes(label)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedLabels([...selectedLabels, label]);
-                          } else {
-                            setSelectedLabels(selectedLabels.filter(l => l !== label));
-                          }
-                        }}
-                      />
-                      <label htmlFor={label} className="text-sm">{label}</label>
-                    </div>
-                  ))}
+                  {["bug", "feature", "high-priority", "documentation"].map(
+                    (label) => (
+                      <div key={label} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={label}
+                          className="rounded"
+                          checked={selectedLabels.includes(label)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedLabels([...selectedLabels, label]);
+                            } else {
+                              setSelectedLabels(
+                                selectedLabels.filter((l) => l !== label)
+                              );
+                            }
+                          }}
+                        />
+                        <label htmlFor={label} className="text-sm">
+                          {label}
+                        </label>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
               {selectedLabels.length > 0 && (
@@ -2816,10 +3435,17 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   <Label>Selected Labels</Label>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {selectedLabels.map((label, index) => (
-                      <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded flex items-center">
+                      <span
+                        key={index}
+                        className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded flex items-center"
+                      >
                         {label}
                         <button
-                          onClick={() => setSelectedLabels(selectedLabels.filter((_, i) => i !== index))}
+                          onClick={() =>
+                            setSelectedLabels(
+                              selectedLabels.filter((_, i) => i !== index)
+                            )
+                          }
                           className="ml-1 text-blue-600 hover:text-blue-800"
                         >
                           ×
@@ -2831,7 +3457,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               )}
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowLabelsModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowLabelsModal(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={() => setShowLabelsModal(false)}>
@@ -2850,7 +3479,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             <div className="space-y-4">
               <div>
                 <Label>Select Assignee</Label>
-                <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+                <Select
+                  value={selectedAssignee}
+                  onValueChange={setSelectedAssignee}
+                >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Choose assignee" />
                   </SelectTrigger>
@@ -2858,14 +3490,19 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
                     <SelectItem value="John Smith">John Smith</SelectItem>
                     <SelectItem value="Mike Chen">Mike Chen</SelectItem>
-                    <SelectItem value="Alex Rodriguez">Alex Rodriguez</SelectItem>
+                    <SelectItem value="Alex Rodriguez">
+                      Alex Rodriguez
+                    </SelectItem>
                     <SelectItem value="Emily Davis">Emily Davis</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowAssigneeModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowAssigneeModal(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={() => setShowAssigneeModal(false)}>
@@ -2884,7 +3521,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             <div className="space-y-4">
               <div>
                 <Label>Select Reporter</Label>
-                <Select value={selectedReporter} onValueChange={setSelectedReporter}>
+                <Select
+                  value={selectedReporter}
+                  onValueChange={setSelectedReporter}
+                >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Choose reporter" />
                   </SelectTrigger>
@@ -2892,14 +3532,19 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                     <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
                     <SelectItem value="John Smith">John Smith</SelectItem>
                     <SelectItem value="Mike Chen">Mike Chen</SelectItem>
-                    <SelectItem value="Alex Rodriguez">Alex Rodriguez</SelectItem>
+                    <SelectItem value="Alex Rodriguez">
+                      Alex Rodriguez
+                    </SelectItem>
                     <SelectItem value="Emily Davis">Emily Davis</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowReporterModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowReporterModal(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={() => setShowReporterModal(false)}>
@@ -2910,7 +3555,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
         </Dialog>
 
         {/* Development Modal */}
-        <Dialog open={showDevelopmentModal} onOpenChange={setShowDevelopmentModal}>
+        <Dialog
+          open={showDevelopmentModal}
+          onOpenChange={setShowDevelopmentModal}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Development Item</DialogTitle>
@@ -2939,7 +3587,10 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
               </div>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowDevelopmentModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDevelopmentModal(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={() => setShowDevelopmentModal(false)}>
@@ -2959,18 +3610,19 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
             </DialogHeader>
             <div className="py-4">
               <p className="text-gray-300 text-sm">
-                Publishing the configuration will make it the default for everyone in the workspace.
+                Publishing the configuration will make it the default for
+                everyone in the workspace.
               </p>
             </div>
             <div className="flex justify-end space-x-3 mt-6">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-gray-600 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:text-gray-800"
                 onClick={() => setShowDefaultModal(false)}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => {
                   // Update the default properties to current selection
@@ -3002,9 +3654,11 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">{selectedTaskForDetails?.description}</p>
+              <p className="text-sm text-gray-600">
+                {selectedTaskForDetails?.description}
+              </p>
             </DialogHeader>
-            
+
             {selectedTaskForDetails && (
               <div className="space-y-6">
                 {/* Task Overview */}
@@ -3016,90 +3670,130 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
                         <span className="text-sm text-gray-600">Status</span>
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(selectedTaskForDetails.status)}
-                          <span className="text-sm text-gray-700 capitalize">{selectedTaskForDetails.status.replace('-', ' ')}</span>
+                          <span className="text-sm text-gray-700 capitalize">
+                            {selectedTaskForDetails.status.replace("-", " ")}
+                          </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Priority</span>
-                        <Badge className={`${getPriorityColor(selectedTaskForDetails.priority)}`}>
+                        <Badge
+                          className={`${getPriorityColor(
+                            selectedTaskForDetails.priority
+                          )}`}
+                        >
                           {selectedTaskForDetails.priority}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Assignee</span>
                         <div className="flex items-center space-x-2">
                           <Avatar className="w-6 h-6">
                             <AvatarFallback className="text-xs">
-                              {generateInitials(selectedTaskForDetails.assignee.name)}
+                              {generateInitials(
+                                selectedTaskForDetails.assignee.name
+                              )}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm text-gray-700">{selectedTaskForDetails.assignee.name}</span>
+                          <span className="text-sm text-gray-700">
+                            {selectedTaskForDetails.assignee.name}
+                          </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Due Date</span>
-                        <span className="text-sm text-gray-700">{new Date(selectedTaskForDetails.dueDate).toLocaleDateString()}</span>
+                        <span className="text-sm text-gray-700">
+                          {new Date(
+                            selectedTaskForDetails.dueDate
+                          ).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <h3 className="font-medium text-gray-900">Progress</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Overall Progress</span>
-                        <span className="text-sm font-medium text-gray-700">{calculateTaskProgress(selectedTaskForDetails)}%</span>
+                        <span className="text-sm text-gray-600">
+                          Overall Progress
+                        </span>
+                        <span className="text-sm font-medium text-gray-700">
+                          {calculateTaskProgress(selectedTaskForDetails)}%
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className={`h-3 rounded-full ${getProgressColor(calculateTaskProgress(selectedTaskForDetails))}`}
-                          style={{ width: `${calculateTaskProgress(selectedTaskForDetails)}%` }}
+                        <div
+                          className={`h-3 rounded-full ${getProgressColor(
+                            calculateTaskProgress(selectedTaskForDetails)
+                          )}`}
+                          style={{
+                            width: `${calculateTaskProgress(
+                              selectedTaskForDetails
+                            )}%`,
+                          }}
                         ></div>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-4 pt-2">
                         <div className="text-center p-3 bg-gray-50 rounded">
-                          <div className="text-lg font-semibold text-gray-900">{selectedTaskForDetails.comments}</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {selectedTaskForDetails.comments}
+                          </div>
                           <div className="text-xs text-gray-600">Comments</div>
                         </div>
                         <div className="text-center p-3 bg-gray-50 rounded">
-                          <div className="text-lg font-semibold text-gray-900">{selectedTaskForDetails.attachments}</div>
-                          <div className="text-xs text-gray-600">Attachments</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {selectedTaskForDetails.attachments}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            Attachments
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Tags */}
                 {selectedTaskForDetails.tags.length > 0 && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-3">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedTaskForDetails.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {tag}
                         </Badge>
                       ))}
                     </div>
                   </div>
                 )}
-                
+
                 {/* Description */}
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-3">Description</h3>
+                  <h3 className="font-medium text-gray-900 mb-3">
+                    Description
+                  </h3>
                   <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded">
-                    {selectedTaskForDetails.description || 'No description provided.'}
+                    {selectedTaskForDetails.description ||
+                      "No description provided."}
                   </p>
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-end space-x-3 mt-6">
-              <Button variant="outline" onClick={() => setShowFullOverview(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowFullOverview(false)}
+              >
                 Close
               </Button>
               <Button onClick={() => setShowFullOverview(false)}>
@@ -3113,4 +3807,4 @@ const KanbanBoard = ({ tasks = [] }: KanbanBoardProps) => {
   );
 };
 
-export default KanbanBoard;
+export default TasksView;
