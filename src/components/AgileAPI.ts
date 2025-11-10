@@ -1,4 +1,4 @@
-import apiService from '../services/apiService';
+import apiService from "@/services/apiService";
 
 // Interfaces for Agile API payloads
 export interface CreateSprintPayload {

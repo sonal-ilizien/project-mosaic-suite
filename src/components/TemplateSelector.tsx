@@ -23,8 +23,9 @@ import { Badge } from "@/components/ui/badge";
 import NewProjectModal from "./NewProjectModal";
 import CreateTemplateModal from "./CreateTemplateModal";
 import { useProjects } from "../contexts/ProjectContext";
-import apiService from "../services/apiService";
+// import apiService from "../services/apiService";
 import { useToast } from "@/hooks/use-toast";
+import apiService from "@/services/apiService";
 
 const TemplateSelector = ({ 
   onBrowseTemplates, 

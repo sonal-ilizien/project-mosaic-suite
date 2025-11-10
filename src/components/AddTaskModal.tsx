@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
-import { Calendar, User, Flag, FolderOpen } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Calendar, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -30,12 +15,11 @@ import {
   CommonTextarea,
   CommonSelect,
   CommonButton,
-  CommonSectionHeader,
   CommonFormGrid,
   CommonFormActions,
 } from "@/components/ui/common-dialog";
-import { useProjects } from "../contexts/ProjectContext";
 import { taskDataStore } from "../lib/taskData";
+import api from "@/services/api";
 
 // Utility function to generate initials from any name
 const generateInitials = (name: string): string => {
@@ -123,8 +107,9 @@ const AddTaskModal = ({
   });
 
   // Get projects from context instead of hardcoded list
-  const { projects, addTaskToProject } = useProjects();
+  // const { projects, addTaskToProject } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [projectOptions, setProjectOptions] = useState([]);
 
   const statusOptions = [
     { id: "todo", name: "To Do", color: "bg-muted" },
@@ -132,12 +117,6 @@ const AddTaskModal = ({
     { id: "review", name: "In Review", color: "bg-warning" },
     { id: "done", name: "Done", color: "bg-success" },
   ];
-
-  // Use dynamic projects from context
-  const projectOptions = projects.map((project) => ({
-    id: project.id.toString(),
-    name: project.name,
-  }));
 
   const teamMembers = [
     { id: "john", name: "John Smith" },
@@ -152,6 +131,29 @@ const AddTaskModal = ({
     { id: "High", name: "High", color: "bg-warning" },
     { id: "Critical", name: "Critical", color: "bg-destructive" },
   ];
+
+  // --------------------------------- PROJECTS AND ASSIGNEE LIST ---------------------------
+
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get("/projects/");
+      // Use dynamic projects from context
+      const data = response.data.map((project) => ({
+        id: project.id.toString(),
+        name: project.name,
+      }));
+      setProjectOptions(data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      setProjectOptions([]);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      fetchProjects();
+    }
+  }, [open]);
 
   // Reset form when modal opens with new default status
   useEffect(() => {

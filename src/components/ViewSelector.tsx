@@ -1,19 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  BarChart3,
-  LayoutGrid,
-  List,
-  Calendar,
-  Filter,
-  Search,
-  Plus,
-  SortAsc,
-  Menu,
-  User,
-} from "lucide-react";
+import { Filter, Search, Plus, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -21,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Dashboard from "./Dashboard";
-import KanbanBoard from "./KanbanBoard";
 import ListView from "./ListView";
 import CalendarView from "./CalendarView";
 import Analytics from "./Analytics";
@@ -38,11 +25,12 @@ import UserProfileDropdown from "./UserProfileDropdown";
 import AgileTestDashboard from "./AgileTestDashboard";
 import CompanyDashboard from "./CompanyDashboard";
 import TasksView from "./KanbanBoard";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type ViewType =
   | "dashboard"
   | "company-dashboard"
-  | "kanban"
+  | "tasks-list"
   | "list"
   | "calendar"
   | "templates"
@@ -73,13 +61,24 @@ const ViewSelector = ({
   selectedProjectFromSidebar,
   onViewChange,
 }: ViewSelectorProps) => {
-  const [activeView, setActiveView] = useState<ViewType>(
-    (propActiveView as ViewType) || "dashboard"
-  );
+  // const [activeView, setActiveView] = useState<ViewType>(
+  //   (propActiveView as ViewType) || "dashboard"
+  // );
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract the last part of the URL as view
+  const currentPath = location.pathname.split("/").filter(Boolean);
+  const urlView = (currentPath[currentPath.length - 1] ||
+    "dashboard") as ViewType;
+
+  const [activeView, setActiveView] = useState<ViewType>(urlView);
 
   const setActiveViewAndNotify = (view: ViewType) => {
     setActiveView(view);
     onViewChange?.(view);
+    navigate(`/${view}`); // 👈 Update the URL
   };
 
   useEffect(() => {
@@ -87,6 +86,14 @@ const ViewSelector = ({
       setActiveView(propActiveView as ViewType);
     }
   }, [propActiveView]);
+    
+  console.log("activeView", activeView);
+
+  useEffect(() => {
+    if (urlView !== activeView) {
+      setActiveView(urlView);
+    }
+  }, [urlView]);
 
   // Handle project selection from sidebar
   useEffect(() => {
@@ -152,7 +159,7 @@ const ViewSelector = ({
         );
       case "company-dashboard":
         return <CompanyDashboard />;
-      case "kanban":
+      case "tasks-list":
         return <TasksView />;
       case "templates":
         return (

@@ -55,8 +55,8 @@ import {
   CommonFormActions,
   CommonTags
 } from "@/components/ui/common-dialog";
-import apiService from "../services/apiService";
 import { useToast } from "@/hooks/use-toast";
+import apiService from "@/services/apiService";
 
 interface Role {
   id: number;
